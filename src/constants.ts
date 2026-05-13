@@ -24,16 +24,25 @@ export interface Education {
   period: string;
   gpa: string;
   details: string[];
+  url?: string;
 }
 
 export const PROJECTS: Project[] = [
   {
     id: 'open-claw',
-    title: 'Open Claw 类 AI 代码助手',
-    description: '一款受高性能自主代理启发的 AI 驱动代码助手。旨在通过提供智能代码建议、调试支持和自动化任务执行，简化开发工作流程。',
-    tags: ['AI/LLM', 'React', 'Node.js', 'Vite'],
-    github: '#',
+    title: '茶茶 - AI Agent 助手',
+    description: '基于 Open Claw 自主代理架构开发的智能助手。具备环境感知、任务规划与自主执行能力，是探索 AI 原生应用开发的重要实践。',
+    tags: ['AI/LLM', 'Autonomous Agent', 'Open Claw'],
+    github: 'https://github.com/Eren9523/SLFP',
     imageUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=1000'
+  },
+  {
+    id: 'game-social',
+    title: '第九空间 - 个人娱乐平台',
+    description: '一个深度集成的个人娱乐中枢，连接多平台游戏数据，汇聚实时游戏资讯，并搭载专属语音服务器。这是我的第九艺术梦工厂。',
+    tags: ['娱乐', '社区', '个人项目'],
+    link: '/game-platform',
+    imageUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=1000'
   }
 ];
 
@@ -81,7 +90,8 @@ export const EDUCATION: Education[] = [
     details: [
       '主导大学生创业项目“慧羽茶途”市场板块。',
       '相关课程：货币金融学、西方经济学、人工智能与应用（数据分析基础）。'
-    ]
+    ],
+    url: 'https://www.zuel.edu.cn/'
   },
   {
     school: '湖北第二师范学院',
@@ -92,6 +102,7 @@ export const EDUCATION: Education[] = [
     details: [
       '荣获“挑战杯”全国三等奖、“互联网+”省级三等奖。',
       '相关课程：Web 前端开发、数据库原理、数据采集与清洗、统计学基础。'
-    ]
+    ],
+    url: 'https://www.hue.edu.cn/'
   }
 ];

@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { User, GraduationCap, Star } from 'lucide-react';
+import { User, GraduationCap, Star, ExternalLink } from 'lucide-react';
 import { EDUCATION } from '../constants';
 
 export default function About() {
@@ -69,7 +69,23 @@ export default function About() {
                 <div key={edu.school} className="relative pl-6 border-l-2 border-indigo-100 hover:border-indigo-500 transition-colors pb-2">
                    <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-white border-2 border-indigo-500" />
                    <p className="text-sm font-semibold text-indigo-600 mb-1">{edu.period}</p>
-                   <h4 className="text-xl font-bold text-slate-900">{edu.school}</h4>
+                   {edu.url ? (
+                     <a 
+                       href={edu.url} 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       className="group/edu flex items-center gap-1.5"
+                     >
+                       <h4 className="text-xl font-bold text-slate-900 group-hover/edu:text-indigo-600 transition-colors uppercase">
+                         {edu.school}
+                       </h4>
+                       <ExternalLink className="w-4 h-4 text-slate-300 group-hover/edu:text-indigo-600 transition-all opacity-0 group-hover/edu:opacity-100" />
+                     </a>
+                   ) : (
+                     <h4 className="text-xl font-bold text-slate-900 uppercase">
+                       {edu.school}
+                     </h4>
+                   )}
                    <p className="text-slate-600 font-medium mb-2">{edu.degree} · {edu.major} · GPA: {edu.gpa}</p>
                    <div className="flex flex-wrap gap-2">
                      {edu.details.map((detail, i) => (

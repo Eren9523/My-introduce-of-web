@@ -1,22 +1,14 @@
-import { motion } from 'motion/react';
-import { Navbar } from './components/Navbar';
-import Hero from './components/Hero';
-import About from './components/About';
-import Projects from './components/Projects';
-import Experience from './components/Experience';
-import Footer from './components/Footer';
+import { Routes, Route } from 'react-router-dom';
+import PortfolioHome from './components/PortfolioHome';
+import GamePlatform from './components/GamePlatform';
 
 export default function App() {
   return (
     <div className="min-h-screen bg-white selection:bg-indigo-100 selection:text-indigo-900 font-sans text-slate-900">
-      <Navbar />
-      <main>
-        <Hero />
-        <About />
-        <Projects />
-        <Experience />
-      </main>
-      <Footer />
+      <Routes>
+        <Route path="/" element={<PortfolioHome />} />
+        <Route path="/game-platform" element={<GamePlatform />} />
+      </Routes>
     </div>
   );
 }

@@ -15,27 +15,9 @@ async function startServer() {
 
   app.use(express.json());
 
-  // API Route for command execution (mimicking Open Claw)
-  app.post("/api/execute", async (req, res) => {
-    const { command } = req.body;
-    
-    if (!command) {
-      return res.status(400).json({ error: "No command provided" });
-    }
-
-    console.log(`[Open Claw] Executing command: ${command}`);
-
-    try {
-      // Basic protection: limit some dangerous commands or let it be for dev demo
-      const { stdout, stderr } = await execPromise(command, { timeout: 10000 });
-      res.json({ stdout, stderr });
-    } catch (error: any) {
-      res.json({ 
-        error: error.message, 
-        stdout: error.stdout || "", 
-        stderr: error.stderr || "" 
-      });
-    }
+  // API Health check
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok" });
   });
 
   // Vite middleware for development
