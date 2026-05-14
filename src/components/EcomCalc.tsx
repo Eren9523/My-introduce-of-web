@@ -334,16 +334,38 @@ export default function EcomCalc() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+                  className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 print:p-0 print:bg-white print:backdrop-blur-none"
                 >
-                  <motion.div 
+                    <motion.div 
+                    id="report-to-print"
                     initial={{ scale: 0.9, y: 20 }}
                     animate={{ scale: 1, y: 0 }}
                     exit={{ scale: 0.9, y: 20 }}
-                    className="bg-white rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl"
+                    className="bg-white rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl print:shadow-none print:rounded-none print:max-w-none print:m-0 print:w-full print:h-full"
                   >
-                    <div className="p-8 bg-emerald-950 text-white relative">
-                      <div className="absolute top-0 right-0 p-4">
+                    <style>{`
+                      @media print {
+                        body {
+                          margin: 0;
+                          padding: 0;
+                          overflow: hidden !important;
+                        }
+                        nav, main, footer, .print-hide {
+                          display: none !important;
+                        }
+                        #report-to-print {
+                          position: absolute;
+                          left: 0;
+                          top: 0;
+                          width: 100% !important;
+                          height: 100% !important;
+                          visibility: visible !important;
+                          display: block !important;
+                        }
+                      }
+                    `}</style>
+                    <div className="p-8 bg-emerald-950 text-white relative print:bg-slate-100 print:text-slate-900">
+                      <div className="absolute top-0 right-0 p-4 print-hide">
                         <button 
                           onClick={() => setShowReport(false)}
                           className="p-2 hover:bg-white/10 rounded-full transition-colors"
@@ -352,7 +374,7 @@ export default function EcomCalc() {
                         </button>
                       </div>
                       <h3 className="text-2xl font-black tracking-tight mb-2">业务分析报告</h3>
-                      <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest">Analysis Summary Report</p>
+                      <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest print:text-slate-500">Analysis Summary Report</p>
                     </div>
                     
                     <div className="p-8 space-y-6">
@@ -382,7 +404,7 @@ export default function EcomCalc() {
 
                       <button 
                         onClick={() => window.print()}
-                        className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-emerald-600 transition-all flex items-center justify-center gap-2"
+                        className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-emerald-600 transition-all flex items-center justify-center gap-2 print-hide"
                       >
                         <RefreshCw className="w-4 h-4" /> 打印报告
                       </button>
