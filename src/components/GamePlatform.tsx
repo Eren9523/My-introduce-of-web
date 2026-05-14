@@ -18,10 +18,10 @@ import {
 import { Link } from 'react-router-dom';
 
 const PLATFORMS = [
-  { name: 'Steam', icon: 'https://cdn.simpleicons.org/steam/1B2838', url: 'https://store.steampowered.com/' },
+  { name: 'Steam', icon: 'https://cdn.simpleicons.org/steam/1b2838', url: 'https://store.steampowered.com/' },
   { name: 'PlayStation', icon: 'https://cdn.simpleicons.org/playstation/003745', url: 'https://www.playstation.com/' },
-  { name: 'Nintendo', icon: 'https://cdn.simpleicons.org/nintendoswitch/E60012', url: 'https://www.nintendo.com/' },
-  { name: 'Xbox', icon: 'https://cdn.simpleicons.org/xbox/107C10', url: 'https://www.xbox.com/' }
+  { name: 'Nintendo', icon: 'https://cdn.simpleicons.org/nintendoswitch', url: 'https://www.nintendo.com/' },
+  { name: 'Xbox', icon: 'https://cdn.simpleicons.org/xbox', url: 'https://www.xbox.com/' }
 ];
 
 const SOCIAL_INFOS = [
@@ -234,11 +234,11 @@ export default function GamePlatform() {
             
             <div className="w-32 h-32 rounded-[2.5rem] overflow-hidden bg-slate-50 border border-slate-100 flex-shrink-0 relative group-hover:scale-105 transition-transform duration-500 shadow-lg">
               <img 
-                src="https://images.unsplash.com/photo-1545641203-7d072a14e3b2?q=80&w=1932&auto=format&fit=crop" 
-                alt="码头服务器图标"
-                className="w-full h-full object-cover"
+                src="https://img.icons8.com/fluency/200/seagull.png" 
+                alt="海鸥吉祥物图标"
+                className="w-full h-full object-contain p-4"
               />
-              <div className="absolute inset-0 bg-cyan-600/10 mix-blend-overlay" />
+              <div className="absolute inset-0 bg-cyan-600/5 mix-blend-overlay pointer-events-none" />
             </div>
 
             <div className="flex-1 text-center md:text-left relative z-10">
@@ -313,9 +313,9 @@ export default function GamePlatform() {
                 
                 <div className="space-y-4">
                   {[
-                     { label: 'Steam', val: info.steam, color: 'text-slate-700', icon: 'https://cdn.simpleicons.org/steam/1B2838' },
+                     { label: 'Steam', val: info.steam, color: 'text-slate-700', icon: 'https://cdn.simpleicons.org/steam/1b2838' },
                      { label: 'PSN', val: info.psn, color: 'text-slate-700', icon: 'https://cdn.simpleicons.org/playstation/003745' },
-                     { label: 'Switch', val: info.switch, color: 'text-slate-700', icon: 'https://cdn.simpleicons.org/nintendoswitch/E60012' }
+                     { label: 'Switch', val: info.switch, color: 'text-slate-700', icon: 'https://cdn.simpleicons.org/nintendoswitch' }
                   ].map(platform => (
                     <div key={platform.label} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-white transition-colors">
                       <div className="flex items-center gap-3">

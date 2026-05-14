@@ -334,37 +334,64 @@ export default function EcomCalc() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 print:p-0 print:bg-white print:backdrop-blur-none"
+                  className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 print:p-0 print:bg-white print:static print:block"
                 >
                     <motion.div 
                     id="report-to-print"
                     initial={{ scale: 0.9, y: 20 }}
                     animate={{ scale: 1, y: 0 }}
                     exit={{ scale: 0.9, y: 20 }}
-                    className="bg-white rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl print:shadow-none print:rounded-none print:max-w-none print:m-0 print:w-full print:h-full"
+                    className="bg-white rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl print:shadow-none print:rounded-none print:max-w-none print:m-0 print:w-full print:h-full print:static print:transform-none !print:opacity-100"
                   >
                     <style>{`
                       @media print {
-                        body {
+                        @page {
+                          size: A4;
                           margin: 0;
-                          padding: 0;
-                          overflow: hidden !important;
                         }
-                        nav, main, footer, .print-hide {
-                          display: none !important;
+                        body {
+                          visibility: hidden !important;
+                          background: white !important;
+                        }
+                        .fixed.inset-0 {
+                          visibility: visible !important;
+                          position: static !important;
+                          display: block !important;
+                          background: white !important;
+                          padding: 0 !important;
                         }
                         #report-to-print {
-                          position: absolute;
-                          left: 0;
-                          top: 0;
-                          width: 100% !important;
-                          height: 100% !important;
                           visibility: visible !important;
+                          position: absolute !important;
+                          left: 0 !important;
+                          top: 0 !important;
+                          width: 100% !important;
+                          margin: 0 !important;
+                          padding: 0 !important;
+                          box-shadow: none !important;
+                          border: none !important;
+                          border-radius: 0 !important;
                           display: block !important;
+                        }
+                        #report-to-print * {
+                          visibility: visible !important;
+                        }
+                        .print-hide {
+                          display: none !important;
+                          visibility: hidden !important;
+                        }
+                        /* Ensure text is dark and backgrounds are clear */
+                        .bg-emerald-950 {
+                          background-color: white !important;
+                          color: #064e3b !important;
+                          border-bottom: 2px solid #064e3b !important;
+                        }
+                        .text-emerald-400 {
+                          color: #059669 !important;
                         }
                       }
                     `}</style>
-                    <div className="p-8 bg-emerald-950 text-white relative print:bg-slate-100 print:text-slate-900">
+                    <div className="p-8 bg-emerald-950 text-white relative print:bg-white print:text-slate-900 print:border-b print:border-slate-200">
                       <div className="absolute top-0 right-0 p-4 print-hide">
                         <button 
                           onClick={() => setShowReport(false)}
