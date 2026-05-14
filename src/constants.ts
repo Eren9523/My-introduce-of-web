@@ -29,6 +29,14 @@ export interface Education {
 
 export const PROJECTS: Project[] = [
   {
+    id: 'ecom-calc',
+    title: 'E-Metric - 电商运营全能计算器',
+    description: '电商专家级的指标分析工具。内置 GMV、CVR、ROI、CPC 等 30+ 核心公式，深度集成跨境电商物流成本与汇率波动模型，助力数据驱动决策。',
+    tags: ['电商', '数据分析', '工具'],
+    link: '/ecom-calc',
+    imageUrl: 'https://images.unsplash.com/photo-1556740734-754f46a066ee?auto=format&fit=crop&q=80&w=1000'
+  },
+  {
     id: 'sheet-flow',
     title: 'SheetFlow - 智能表格自动化',
     description: '办公自动化神器。基于 SheetJS 架构，实现浏览器端轻量化 Excel 处理。支持 VLOOKUP 批量匹配、自动化数据透视及 90% 常用办公公式的一键生成。',
