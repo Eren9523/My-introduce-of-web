@@ -17,6 +17,19 @@ export interface Experience {
   description: string[];
 }
 
+export interface CampusExperience {
+  organization: string;
+  role: string;
+  period: string;
+  description: string[];
+}
+
+export interface Award {
+  title: string;
+  level: string;
+  date: string;
+}
+
 export interface Education {
   school: string;
   degree: string;
@@ -45,12 +58,19 @@ export const PROJECTS: Project[] = [
     imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1000'
   },
   {
+    id: 'web-agent',
+    title: 'Web Agent - 在线 AI 智能代理',
+    description: '极致轻量化、无需部署、随时随地在网页端开启的 AI 助手。主打超快响应速度与极简操作体验，为您提供即时、高效的智能化在线支持。',
+    tags: ['AI/LLM', '在线助手', '生产力'],
+    imageUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1000'
+  },
+  {
     id: 'open-claw',
-    title: '茶茶 - AI Agent 助手',
-    description: '基于 Open Claw 自主代理架构开发的智能助手。具备环境感知、任务规划与自主执行能力，是探索 AI 原生应用开发的重要实践。',
-    tags: ['AI/LLM', 'Autonomous Agent', 'Open Claw'],
+    title: '茶茶 Open Claw - 本地 AI 智能体 (文件深控版)',
+    description: '基于 Open Claw 自主代理架构的本地化硬核助手。深度集成底层文件系统，具备极强的环境感知与任务规划能力，支持毫秒级本地文件读写、格式转换与目录自动化管理。',
+    tags: ['AI/LLM', 'Open Claw', '本地自动化'],
     github: 'https://github.com/Eren9523/SLFP',
-    imageUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=1000'
+    imageUrl: 'https://images.unsplash.com/photo-1504639725590-34d0984388bd?auto=format&fit=crop&q=80&w=1000'
   },
   {
     id: 'game-social',
@@ -104,7 +124,6 @@ export const EDUCATION: Education[] = [
     period: '2025.09 - 至今',
     gpa: '3.87/4.0',
     details: [
-      '主导大学生创业项目“慧羽茶途”市场板块。',
       '相关课程：货币金融学、西方经济学、人工智能与应用（数据分析基础）。'
     ],
     url: 'https://www.zuel.edu.cn/'
@@ -116,9 +135,55 @@ export const EDUCATION: Education[] = [
     period: '2021.09 - 2025.07',
     gpa: '3.1/4.0',
     details: [
-      '荣获“挑战杯”全国三等奖、“互联网+”省级三等奖。',
       '相关课程：Web 前端开发、数据库原理、数据采集与清洗、统计学基础。'
     ],
     url: 'https://www.hue.edu.cn/'
   }
 ];
+
+export const CAMPUS_EXPERIENCES: CampusExperience[] = [
+  {
+    organization: '中南财经政法大学 - 大学生创业项目“慧羽茶途”',
+    role: '市场总监 / 核心成员',
+    period: '2025.09 - 至今',
+    description: [
+      '主导项目市场调研与品牌定位，搭建完整的视觉识别系统（VI）。',
+      '负责新媒体矩阵，通过小红书、抖音等平台进行品牌推广，累计曝光量超 5w+。',
+      '参与商业计划书撰写与路演展示，协助项目获得多项创业竞赛奖项。'
+    ]
+  },
+  {
+    organization: '湖北第二师范学院 - 电子商务协会',
+    role: '会长',
+    period: '2022.09 - 2024.06',
+    description: [
+      '统筹协会日常运营，成功组织“模拟电商周”等大型校园活动，参与人数逾 500 人。',
+      '与多家本地电商企业达成产学研合作，为会员争取到 10 余个实习见习机会。',
+      '负责协会对外公关工作，获校级“十佳社团”荣誉。'
+    ]
+  }
+];
+
+export const AWARDS: Award[] = [
+  {
+    title: '“挑战杯”中国大学生课外学术科技作品竞赛',
+    level: '全国三等奖',
+    date: '2023.11'
+  },
+  {
+    title: '“互联网+”大学生创新创业大赛',
+    level: '省级三等奖',
+    date: '2023.08'
+  },
+  {
+    title: '研究生学业奖学金',
+    level: '一等奖',
+    date: '2025.10'
+  },
+  {
+    title: '湖北第二师范学院',
+    level: '优秀毕业生 / 三好学生',
+    date: '2025.06'
+  }
+];
+

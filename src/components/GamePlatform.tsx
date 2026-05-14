@@ -20,8 +20,8 @@ import { Link } from 'react-router-dom';
 const PLATFORMS = [
   { name: 'Steam', icon: 'https://cdn.simpleicons.org/steam/1b2838', url: 'https://store.steampowered.com/' },
   { name: 'PlayStation', icon: 'https://cdn.simpleicons.org/playstation/003745', url: 'https://www.playstation.com/' },
-  { name: 'Nintendo', icon: 'https://cdn.simpleicons.org/nintendoswitch', url: 'https://www.nintendo.com/' },
-  { name: 'Xbox', icon: 'https://cdn.simpleicons.org/xbox', url: 'https://www.xbox.com/' }
+  { name: 'Nintendo', icon: 'https://cdn.simpleicons.org/nintendoswitch/e60012', url: 'https://www.nintendo.com/' },
+  { name: 'Xbox', icon: 'https://cdn.simpleicons.org/xbox/107c10', url: 'https://www.xbox.com/' }
 ];
 
 const SOCIAL_INFOS = [
