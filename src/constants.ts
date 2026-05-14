@@ -29,6 +29,14 @@ export interface Education {
 
 export const PROJECTS: Project[] = [
   {
+    id: 'sheet-flow',
+    title: 'SheetFlow - 智能表格自动化',
+    description: '办公自动化神器。基于 SheetJS 架构，实现浏览器端轻量化 Excel 处理。支持 VLOOKUP 批量匹配、自动化数据透视及 90% 常用办公公式的一键生成。',
+    tags: ['数据处理', '办公自动化', '算法'],
+    link: '/sheet-flow',
+    imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1000'
+  },
+  {
     id: 'open-claw',
     title: '茶茶 - AI Agent 助手',
     description: '基于 Open Claw 自主代理架构开发的智能助手。具备环境感知、任务规划与自主执行能力，是探索 AI 原生应用开发的重要实践。',
