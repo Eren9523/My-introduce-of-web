@@ -34,7 +34,7 @@ export const PROJECTS: Project[] = [
     description: '电商专家级的指标分析工具。内置 GMV、CVR、ROI、CPC 等 30+ 核心公式，深度集成跨境电商物流成本与汇率波动模型，助力数据驱动决策。',
     tags: ['电商', '数据分析', '工具'],
     link: '/ecom-calc',
-    imageUrl: 'https://images.unsplash.com/photo-1556740734-754f46a066ee?auto=format&fit=crop&q=80&w=1000'
+    imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1000'
   },
   {
     id: 'sheet-flow',

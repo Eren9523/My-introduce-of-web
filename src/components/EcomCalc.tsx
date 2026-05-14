@@ -126,6 +126,9 @@ export default function EcomCalc() {
     return initial;
   });
 
+  const [isCopied, setIsCopied] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+
   const activeFormula = useMemo(() => 
     FORMULAS.find(f => f.id === activeFormulaId)!, [activeFormulaId]
   );
@@ -146,6 +149,17 @@ export default function EcomCalc() {
       newInputs[input.key] = input.defaultValue;
     });
     setInputs(newInputs);
+  };
+
+  const handleCopy = () => {
+    const textToCopy = `${activeFormula.name} 结果: ${result.toLocaleString()} ${activeFormula.resultUnit}`;
+    navigator.clipboard.writeText(textToCopy);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
+
+  const handleGenerateReport = () => {
+    setShowReport(true);
   };
 
   return (
@@ -294,10 +308,17 @@ export default function EcomCalc() {
                     </div>
                     
                     <div className="mt-8 flex justify-center gap-4">
-                      <button className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-black text-white border border-white/10 transition-all">
-                        <Copy className="w-4 h-4" /> 复制结果
+                      <button 
+                        onClick={handleCopy}
+                        className={`flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black text-white border transition-all ${isCopied ? 'bg-emerald-600 border-emerald-500' : 'bg-white/10 hover:bg-white/20 border-white/10'}`}
+                      >
+                        {isCopied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        {isCopied ? '已复制' : '复制结果'}
                       </button>
-                      <button className="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 rounded-xl text-xs font-black text-white shadow-lg shadow-emerald-500/20 transition-all">
+                      <button 
+                        onClick={handleGenerateReport}
+                        className="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 rounded-xl text-xs font-black text-white shadow-lg shadow-emerald-500/20 transition-all"
+                      >
                         <PieChart className="w-4 h-4" /> 生成报告
                       </button>
                     </div>
@@ -305,6 +326,71 @@ export default function EcomCalc() {
                 </div>
               </div>
             </motion.div>
+
+            {/* Report Modal */}
+            <AnimatePresence>
+              {showReport && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+                >
+                  <motion.div 
+                    initial={{ scale: 0.9, y: 20 }}
+                    animate={{ scale: 1, y: 0 }}
+                    exit={{ scale: 0.9, y: 20 }}
+                    className="bg-white rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl"
+                  >
+                    <div className="p-8 bg-emerald-950 text-white relative">
+                      <div className="absolute top-0 right-0 p-4">
+                        <button 
+                          onClick={() => setShowReport(false)}
+                          className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                        >
+                          <ArrowLeft className="w-5 h-5 rotate-90" />
+                        </button>
+                      </div>
+                      <h3 className="text-2xl font-black tracking-tight mb-2">业务分析报告</h3>
+                      <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest">Analysis Summary Report</p>
+                    </div>
+                    
+                    <div className="p-8 space-y-6">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">分析项 / Metric Name</label>
+                        <p className="text-xl font-bold text-slate-900">{activeFormula.name}</p>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        {activeFormula.inputs.map(input => (
+                          <div key={input.key} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">{input.label}</label>
+                             <p className="text-lg font-black text-slate-700">{inputs[input.key]} <span className="text-[10px] text-slate-400 ml-1">{input.unit}</span></p>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
+                        <div>
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">关键结果 / Final Result</label>
+                          <p className="text-3xl font-black text-emerald-600">{result.toLocaleString()} {activeFormula.resultUnit}</p>
+                        </div>
+                        <div className="w-20 h-20 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-200">
+                          <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+                        </div>
+                      </div>
+
+                      <button 
+                        onClick={() => window.print()}
+                        className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-emerald-600 transition-all flex items-center justify-center gap-2"
+                      >
+                        <RefreshCw className="w-4 h-4" /> 打印报告
+                      </button>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Recommendations or common knowledge section */}
             <div className="grid md:grid-cols-3 gap-4">
