@@ -18,10 +18,10 @@ import {
 import { Link } from 'react-router-dom';
 
 const PLATFORMS = [
-  { name: 'Steam', icon: 'https://cdn.simpleicons.org/steam/1b2838', url: 'https://store.steampowered.com/' },
-  { name: 'PlayStation', icon: 'https://cdn.simpleicons.org/playstation/003745', url: 'https://www.playstation.com/' },
-  { name: 'Nintendo', icon: 'https://cdn.simpleicons.org/nintendoswitch/e60012', url: 'https://www.nintendo.com/' },
-  { name: 'Xbox', icon: 'https://cdn.simpleicons.org/xbox/107c10', url: 'https://www.xbox.com/' }
+  { name: 'Steam', icon: 'https://api.iconify.design/simple-icons:steam.svg?color=%231b2838', url: 'https://store.steampowered.com/' },
+  { name: 'PlayStation', icon: 'https://api.iconify.design/simple-icons:playstation.svg?color=%23003745', url: 'https://www.playstation.com/' },
+  { name: 'Nintendo', icon: 'https://api.iconify.design/simple-icons:nintendoswitch.svg?color=%23e60012', url: 'https://www.nintendo.com/' },
+  { name: 'Xbox', icon: 'https://api.iconify.design/simple-icons:xbox.svg?color=%23107c10', url: 'https://www.xbox.com/' }
 ];
 
 const SOCIAL_INFOS = [
@@ -31,10 +31,10 @@ const SOCIAL_INFOS = [
 ];
 
 const NEWS_SITES = [
-  { name: '游民星空', url: 'https://www.gamersky.com/', desc: 'GameSky - 领先门户' },
-  { name: '3DM游戏网', url: 'https://www.3dmgame.com/', desc: '3DM - 汉化圣地' },
-  { name: '游侠网', url: 'https://www.ali213.net/', desc: 'Ali213 - 资深平台' },
-  { name: '小黑盒', url: 'https://www.xiaoheihe.cn/', desc: 'HeyBox - 核心玩家' }
+  { name: '游民星空', url: 'https://www.gamersky.com/', desc: 'GameSky - 领先门户', icon: 'https://www.google.com/s2/favicons?domain=gamersky.com&sz=128' },
+  { name: '3DM游戏网', url: 'https://www.3dmgame.com/', desc: '3DM - 汉化圣地', icon: 'https://www.google.com/s2/favicons?domain=3dmgame.com&sz=128' },
+  { name: '游侠网', url: 'https://www.ali213.net/', desc: 'Ali213 - 资深平台', icon: 'https://www.google.com/s2/favicons?domain=ali213.net&sz=128' },
+  { name: '小黑盒', url: 'https://www.xiaoheihe.cn/', desc: 'HeyBox - 核心玩家', icon: 'https://www.google.com/s2/favicons?domain=xiaoheihe.cn&sz=128' }
 ];
 
 interface Comment {
@@ -313,9 +313,9 @@ export default function GamePlatform() {
                 
                 <div className="space-y-4">
                   {[
-                     { label: 'Steam', val: info.steam, color: 'text-slate-700', icon: 'https://cdn.simpleicons.org/steam/1b2838' },
-                     { label: 'PSN', val: info.psn, color: 'text-slate-700', icon: 'https://cdn.simpleicons.org/playstation/003745' },
-                     { label: 'Switch', val: info.switch, color: 'text-slate-700', icon: 'https://cdn.simpleicons.org/nintendoswitch' }
+                     { label: 'Steam', val: info.steam, color: 'text-slate-700', icon: 'https://api.iconify.design/simple-icons:steam.svg?color=%231b2838' },
+                     { label: 'PSN', val: info.psn, color: 'text-slate-700', icon: 'https://api.iconify.design/simple-icons:playstation.svg?color=%23003745' },
+                     { label: 'Switch', val: info.switch, color: 'text-slate-700', icon: 'https://api.iconify.design/simple-icons:nintendoswitch.svg?color=%23e60012' }
                   ].map(platform => (
                     <div key={platform.label} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-white transition-colors">
                       <div className="flex items-center gap-3">
@@ -352,8 +352,8 @@ export default function GamePlatform() {
                 transition={{ delay: i * 0.1 }}
                 className="group relative p-10 bg-white border border-slate-200 rounded-[3rem] overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all flex flex-col items-center"
               >
-                <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-8 border border-slate-100 group-hover:bg-cyan-600 group-hover:border-cyan-600 transition-all duration-500">
-                  <Globe className="w-8 h-8 text-slate-300 group-hover:text-white" />
+                <div className="w-16 h-16 bg-slate-50 flex items-center justify-center mb-8 transition-all duration-500 overflow-hidden">
+                  <img src={site.icon} alt={site.name} className="w-12 h-12 object-contain group-hover:scale-110 transition-transform" />
                 </div>
                 <h3 className="text-xl font-black mb-2 text-slate-800 uppercase tracking-tighter">{site.name}</h3>
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{site.desc}</p>

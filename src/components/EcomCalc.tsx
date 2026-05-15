@@ -163,9 +163,9 @@ export default function EcomCalc() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f1f5f9] text-slate-900 font-sans">
+    <div className="min-h-screen bg-[#f1f5f9] text-slate-900 font-sans print:bg-white print:min-h-0">
       {/* Navbar */}
-      <nav className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+      <nav className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm print:hidden">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link to="/" className="p-2 hover:bg-slate-50 rounded-xl transition-colors">
@@ -184,7 +184,7 @@ export default function EcomCalc() {
         </div>
       </nav>
 
-      <main className="max-w-6xl mx-auto p-6 md:p-10">
+      <main className="max-w-6xl mx-auto p-6 md:p-10 print:hidden">
         <div className="grid lg:grid-cols-12 gap-8 items-start">
           
           {/* Sidebar formulas list */}
@@ -334,51 +334,20 @@ export default function EcomCalc() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 print:p-0 print:bg-white print:static print:block"
+                  className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 print:relative print:block print:bg-white print:p-0 print:inset-auto"
                 >
                     <motion.div 
                     id="report-to-print"
                     initial={{ scale: 0.9, y: 20 }}
                     animate={{ scale: 1, y: 0 }}
                     exit={{ scale: 0.9, y: 20 }}
-                    className="bg-white rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl print:shadow-none print:rounded-none print:max-w-none print:m-0 print:w-full print:h-full print:static print:transform-none !print:opacity-100"
+                    className="bg-white rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl print:shadow-none print:rounded-none print:max-w-none print:m-0 print:w-full print:h-auto print:static print:transform-none !print:opacity-100"
                   >
                     <style>{`
                       @media print {
                         @page {
                           size: A4;
-                          margin: 0;
-                        }
-                        body {
-                          visibility: hidden !important;
-                          background: white !important;
-                        }
-                        .fixed.inset-0 {
-                          visibility: visible !important;
-                          position: static !important;
-                          display: block !important;
-                          background: white !important;
-                          padding: 0 !important;
-                        }
-                        #report-to-print {
-                          visibility: visible !important;
-                          position: absolute !important;
-                          left: 0 !important;
-                          top: 0 !important;
-                          width: 100% !important;
-                          margin: 0 !important;
-                          padding: 0 !important;
-                          box-shadow: none !important;
-                          border: none !important;
-                          border-radius: 0 !important;
-                          display: block !important;
-                        }
-                        #report-to-print * {
-                          visibility: visible !important;
-                        }
-                        .print-hide {
-                          display: none !important;
-                          visibility: hidden !important;
+                          margin: 1cm;
                         }
                         /* Ensure text is dark and backgrounds are clear */
                         .bg-emerald-950 {
@@ -392,7 +361,7 @@ export default function EcomCalc() {
                       }
                     `}</style>
                     <div className="p-8 bg-emerald-950 text-white relative print:bg-white print:text-slate-900 print:border-b print:border-slate-200">
-                      <div className="absolute top-0 right-0 p-4 print-hide">
+                      <div className="absolute top-0 right-0 p-4 print:hidden">
                         <button 
                           onClick={() => setShowReport(false)}
                           className="p-2 hover:bg-white/10 rounded-full transition-colors"
@@ -431,7 +400,7 @@ export default function EcomCalc() {
 
                       <button 
                         onClick={() => window.print()}
-                        className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-emerald-600 transition-all flex items-center justify-center gap-2 print-hide"
+                        className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-emerald-600 transition-all flex items-center justify-center gap-2 print:hidden"
                       >
                         <RefreshCw className="w-4 h-4" /> 打印报告
                       </button>
@@ -464,7 +433,7 @@ export default function EcomCalc() {
         </div>
       </main>
 
-      <footer className="mt-20 border-t border-slate-200 bg-white py-12">
+      <footer className="mt-20 border-t border-slate-200 bg-white py-12 print:hidden">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">E-Metric Analysis Hub © 2026</p>
           <div className="flex justify-center gap-8 opacity-30 grayscale hover:grayscale-0 transition-all duration-700">
