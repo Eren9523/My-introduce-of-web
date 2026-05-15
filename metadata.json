@@ -2,5 +2,7 @@
   "name": "Qiu Peng - Personal Website",
   "description": "Personal introduction and project showcase for Qiu Peng, a Master's student at ZUEL focusing on platform operations and AI-driven tools.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

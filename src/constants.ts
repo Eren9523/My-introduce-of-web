@@ -62,6 +62,7 @@ export const PROJECTS: Project[] = [
     title: 'Web Agent - 在线 AI 智能代理',
     description: '极致轻量化、无需部署、随时随地在网页端开启的 AI 助手。主打超快响应速度与极简操作体验，为您提供即时、高效的智能化在线支持。',
     tags: ['AI/LLM', '在线助手', '生产力'],
+    link: '/chat',
     imageUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1000'
   },
   {
