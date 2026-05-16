@@ -97,8 +97,8 @@ export default function GamePlatform() {
          const comments = data.filter((d: any) => d.parent_id);
 
          const combined: Message[] = topLevel.map((msg: any) => {
-           const msgComments = comments.filter((c: any) => c.parent_id === msg.id);
-           msgComments.sort((a, b) => a.created_at - b.created_at);
+           const msgComments = comments.filter((c: any) => String(c.parent_id) === String(msg.id));
+           msgComments.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
            return { ...msg, comments: msgComments } as Message;
          });
          setMessages(combined);
@@ -201,11 +201,6 @@ export default function GamePlatform() {
     } catch (err) {
       console.error(err);
     }
-  };
-
-  const startReply = (authorName: string) => {
-    setNewContent(`@${authorName} `);
-    // Focus is handled manually by user
   };
 
   return (
