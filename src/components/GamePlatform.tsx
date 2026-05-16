@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { db } from '../firebase';
+import { collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy, serverTimestamp, getDocs, writeBatch } from 'firebase/firestore';
+import { formatDistanceToNow } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 import { 
   Gamepad2, 
   Users, 
@@ -13,7 +17,10 @@ import {
   CheckCircle2,
   Send,
   Trash2,
-  Reply
+  Reply,
+  Swords,
+  Target,
+  Box
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -31,24 +38,26 @@ const SOCIAL_INFOS = [
 ];
 
 const NEWS_SITES = [
-  { name: '游民星空', url: 'https://www.gamersky.com/', desc: 'GameSky - 领先门户', icon: 'https://www.google.com/s2/favicons?domain=gamersky.com&sz=128' },
-  { name: '3DM游戏网', url: 'https://www.3dmgame.com/', desc: '3DM - 汉化圣地', icon: 'https://www.google.com/s2/favicons?domain=3dmgame.com&sz=128' },
-  { name: '游侠网', url: 'https://www.ali213.net/', desc: 'Ali213 - 资深平台', icon: 'https://www.google.com/s2/favicons?domain=ali213.net&sz=128' },
-  { name: '小黑盒', url: 'https://www.xiaoheihe.cn/', desc: 'HeyBox - 核心玩家', icon: 'https://www.google.com/s2/favicons?domain=xiaoheihe.cn&sz=128' }
+  { name: '游民星空', url: 'https://www.gamersky.com/', desc: 'GameSky - 领先门户', icon: Globe },
+  { name: '3DM游戏网', url: 'https://www.3dmgame.com/', desc: '3DM - 汉化圣地', icon: Swords },
+  { name: '游侠网', url: 'https://www.ali213.net/', desc: 'Ali213 - 资深平台', icon: Target },
+  { name: '小黑盒', url: 'https://www.xiaoheihe.cn/', desc: 'HeyBox - 核心玩家', icon: Box }
 ];
 
 interface Comment {
-  id: number;
+  id: string;
   user: string;
   content: string;
   time: string;
+  rawTime: Date | null;
 }
 
 interface Message {
-  id: number;
+  id: string;
   user: string;
   content: string;
   time: string;
+  rawTime: Date | null;
   comments: Comment[];
 }
 
@@ -56,77 +65,115 @@ export default function GamePlatform() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newName, setNewName] = useState('');
   const [newContent, setNewContent] = useState('');
-  const [replyTarget, setReplyTarget] = useState<number | null>(null);
+  const [replyTarget, setReplyTarget] = useState<string | null>(null);
   const [replyName, setReplyName] = useState('');
   const [replyContent, setReplyContent] = useState('');
 
-  // Load from localStorage
+  // Update timestamps every minute
+  const [now, setNow] = useState(Date.now());
   useEffect(() => {
-    const saved = localStorage.getItem('gamex_messages');
-    if (saved) {
-      setMessages(JSON.parse(saved));
-    } else {
-      setMessages([
-        { id: 1, user: '老王', content: '《塞尔达》新作预告太帅了！', time: '10分钟前', comments: [] },
-        { id: 2, user: '张任云飞', content: '新出的那款 JRPG 真心不错，画质拉满。', time: '1小时前', comments: [
-          { id: 101, user: '邱鹏', content: '已经在预下载了，确实顶。', time: '50分钟前' }
-        ] }
-      ]);
-    }
+    const timer = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(timer);
   }, []);
 
-  // Save to localStorage
-  useEffect(() => {
-    if (messages.length > 0) {
-      localStorage.setItem('gamex_messages', JSON.stringify(messages));
-    }
-  }, [messages]);
+  const formatTime = (date: Date | null) => {
+    if (!date) return '刚刚';
+    return formatDistanceToNow(date, { addSuffix: true, locale: zhCN });
+  };
 
-  const handlePost = (e: React.FormEvent) => {
+  useEffect(() => {
+    const messagesRef = collection(db, 'board_messages');
+    const q = query(messagesRef, orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const allDocs = snapshot.docs.map(doc => {
+        const data = doc.data();
+        let rawTime: Date | null = null;
+        if (data.createdAt?.toDate) {
+          rawTime = data.createdAt.toDate();
+        }
+        return {
+          id: doc.id,
+          ...data,
+          rawTime,
+          time: rawTime ? formatTime(rawTime) : '刚刚',
+        };
+      });
+
+      // Split into top-level messages and comments
+      const topLevel = allDocs.filter((d: any) => !d.parentId);
+      const comments = allDocs.filter((d: any) => d.parentId);
+
+      const combined: Message[] = topLevel.map((msg: any) => {
+        const msgComments = comments.filter((c: any) => c.parentId === msg.id);
+        msgComments.sort((a, b) => a.rawTime?.getTime()! - b.rawTime?.getTime()!);
+        return { ...msg, comments: msgComments } as Message;
+      });
+
+      setMessages(combined);
+    });
+
+    return () => unsubscribe();
+  }, [now]);
+
+  const handlePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName.trim() || !newContent.trim()) return;
-    const newMessage: Message = {
-      id: Date.now(),
-      user: newName,
-      content: newContent,
-      time: '刚刚',
-      comments: []
-    };
-    setMessages([newMessage, ...messages]);
-    setNewName('');
-    setNewContent('');
+    try {
+      await addDoc(collection(db, 'board_messages'), {
+        user: newName,
+        content: newContent,
+        time: '刚刚',
+        createdAt: serverTimestamp(),
+        parentId: null
+      });
+      setNewName('');
+      setNewContent('');
+    } catch (err) {
+      console.error(err);
+      alert('留言失败，请重试');
+    }
   };
 
-  const handleDelete = (id: number) => {
-    setMessages(messages.filter(m => m.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      // Basic delete, also delete comments
+      const commentsToDelete = messages.find(m => m.id === id)?.comments || [];
+      const batch = writeBatch(db);
+      batch.delete(doc(db, 'board_messages', id));
+      commentsToDelete.forEach(c => {
+        batch.delete(doc(db, 'board_messages', c.id));
+      });
+      await batch.commit();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleReply = (msgId: number) => {
+  const handleReply = async (msgId: string) => {
     if (!replyName.trim() || !replyContent.trim()) return;
-    const newComment: Comment = {
-      id: Date.now(),
-      user: replyName,
-      content: replyContent,
-      time: '刚刚'
-    };
-    setMessages(messages.map(m => {
-      if (m.id === msgId) {
-        return { ...m, comments: [...m.comments, newComment] };
-      }
-      return m;
-    }));
-    setReplyTarget(null);
-    setReplyName('');
-    setReplyContent('');
+    try {
+      await addDoc(collection(db, 'board_messages'), {
+        user: replyName,
+        content: replyContent,
+        time: '刚刚',
+        createdAt: serverTimestamp(),
+        parentId: msgId
+      });
+      setReplyTarget(null);
+      setReplyName('');
+      setReplyContent('');
+    } catch (err) {
+      console.error(err);
+      alert('回复失败，请重试');
+    }
   };
 
-  const handleDeleteComment = (msgId: number, commentId: number) => {
-    setMessages(messages.map(m => {
-      if (m.id === msgId) {
-        return { ...m, comments: m.comments.filter(c => c.id !== commentId) };
-      }
-      return m;
-    }));
+  const handleDeleteComment = async (msgId: string, commentId: string) => {
+    try {
+      await deleteDoc(doc(db, 'board_messages', commentId));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -353,7 +400,7 @@ export default function GamePlatform() {
                 className="group relative p-10 bg-white border border-slate-200 rounded-[3rem] overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all flex flex-col items-center"
               >
                 <div className="w-16 h-16 bg-slate-50 flex items-center justify-center mb-8 transition-all duration-500 overflow-hidden">
-                  <img src={site.icon} alt={site.name} className="w-12 h-12 object-contain group-hover:scale-110 transition-transform" />
+                  <site.icon className="w-8 h-8 text-cyan-600 group-hover:scale-110 transition-transform" />
                 </div>
                 <h3 className="text-xl font-black mb-2 text-slate-800 uppercase tracking-tighter">{site.name}</h3>
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{site.desc}</p>
