@@ -35,17 +35,24 @@ export default function About() {
             <div className="space-y-4">
               <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">核心技能</h3>
               <div className="flex flex-wrap gap-3">
-                {skills.map((skill) => (
-                  <div key={skill.category} className="p-4 bg-slate-50 rounded-xl border border-slate-100 w-full sm:w-[calc(50%-0.75rem)]">
+                {skills.map((skill, index) => (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    viewport={{ once: true }}
+                    key={skill.category} 
+                    className="p-4 bg-slate-50 rounded-xl border border-slate-100 w-full sm:w-[calc(50%-0.75rem)]"
+                  >
                     <p className="font-bold text-slate-900 mb-2 text-sm">{skill.category}</p>
                     <div className="flex flex-wrap gap-2">
                       {skill.items.map(item => (
-                        <span key={item} className="text-xs text-slate-500 font-medium px-2 py-1 bg-white border border-slate-200 rounded-md">
+                        <span key={item} className="text-xs text-slate-500 font-medium px-2 py-1 bg-white border border-slate-200 rounded-md hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
                           {item}
                         </span>
                       ))}
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </div>
@@ -65,8 +72,15 @@ export default function About() {
             </div>
 
             <div className="space-y-6">
-              {EDUCATION.map((edu) => (
-                <div key={edu.school} className="relative pl-6 border-l-2 border-indigo-100 hover:border-indigo-500 transition-colors pb-2">
+              {EDUCATION.map((edu, index) => (
+                <motion.div 
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.15 }}
+                  viewport={{ once: true }}
+                  key={edu.school} 
+                  className="relative pl-6 border-l-2 border-indigo-100 hover:border-indigo-500 transition-colors pb-2"
+                >
                    <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-white border-2 border-indigo-500" />
                    <p className="text-sm font-semibold text-indigo-600 mb-1">{edu.period}</p>
                    {edu.url ? (
@@ -89,12 +103,12 @@ export default function About() {
                    <p className="text-slate-600 font-medium mb-2">{edu.degree} · {edu.major} · GPA: {edu.gpa}</p>
                    <div className="flex flex-wrap gap-2">
                      {edu.details.map((detail, i) => (
-                       <span key={i} className="text-xs bg-slate-50 text-slate-500 px-3 py-1 rounded-full border border-slate-100">
+                       <span key={i} className="text-xs bg-slate-50 text-slate-500 px-3 py-1 rounded-full border border-slate-100 hover:bg-white hover:shadow-sm transition-all">
                          {detail}
                        </span>
                      ))}
                    </div>
-                </div>
+                </motion.div>
               ))}
             </div>
 

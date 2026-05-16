@@ -6,8 +6,16 @@ export default function Hero() {
     <section className="relative pt-32 pb-20 overflow-hidden bg-white">
       {/* Background patterns */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
-        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-indigo-50 rounded-full blur-3xl opacity-60" />
-        <div className="absolute top-[20%] -right-[5%] w-[30%] h-[30%] bg-blue-50 rounded-full blur-3xl opacity-40" />
+        <motion.div 
+          animate={{ x: [0, 50, 0], y: [0, 30, 0] }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-indigo-50 rounded-full blur-3xl opacity-60" 
+        />
+        <motion.div 
+          animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute top-[20%] -right-[5%] w-[30%] h-[30%] bg-blue-50 rounded-full blur-3xl opacity-40" 
+        />
       </div>
 
       <div className="container mx-auto px-6 max-w-6xl">
@@ -60,7 +68,7 @@ export default function Hero() {
                  <span className="text-xs uppercase font-bold tracking-widest text-slate-500 mt-1">实习经历</span>
                </div>
                <div className="flex flex-col border-l border-slate-100 pl-8">
-                 <span className="text-2xl font-bold text-slate-900">1+</span>
+                 <span className="text-2xl font-bold text-slate-900">2+</span>
                  <span className="text-xs uppercase font-bold tracking-widest text-slate-500 mt-1">AI 落地项目</span>
                </div>
             </div>
@@ -93,8 +101,16 @@ export default function Hero() {
             </div>
             
             {/* Geometric accents */}
-            <div className="absolute -top-4 -right-4 w-24 h-24 bg-indigo-100 rounded-full -z-10 blur-xl"></div>
-            <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-slate-100 rounded-2xl -z-10 blur-2xl"></div>
+            <motion.div 
+              animate={{ rotate: 360 }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              className="absolute -top-4 -right-4 w-24 h-24 bg-indigo-100 rounded-full -z-10 blur-xl origin-bottom-left"
+            ></motion.div>
+            <motion.div 
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute -bottom-10 -left-10 w-48 h-48 bg-slate-100 rounded-2xl -z-10 blur-2xl"
+            ></motion.div>
           </motion.div>
         </div>
       </div>
