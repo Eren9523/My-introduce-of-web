@@ -5,7 +5,31 @@ export async function onRequestPost(context: any) {
   try {
     // 1. 获取前端传来的 JSON 数据 (保持 WebAgent.tsx 完全不变)
     const body = await request.json();
-    const { message, history } = body;
+    const { message, history, verifyKey, authKey } = body;
+
+    const validKey = env.WEB_AGENT_KEY || "888888";
+
+    if (verifyKey !== undefined) {
+      if (verifyKey === validKey) {
+        return new Response(JSON.stringify({ success: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        });
+      } else {
+        return new Response(JSON.stringify({ error: "授权码错误" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+    }
+
+    const userMessageCount = (history || []).filter((m: any) => m.role === 'user').length;
+    if (userMessageCount >= 3 && authKey !== validKey) {
+      return new Response(JSON.stringify({ error: "您的体验次数已结束，如需申请授权码请联系管理者", needsAuth: true }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
 
     // 2. 检查 DeepSeek 密钥是否配置
     if (!env.DEEPSEEK_API_KEY) {

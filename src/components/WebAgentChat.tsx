@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Send, Bot, User, ArrowLeft, RefreshCw, Sparkles, MessageSquare } from 'lucide-react';
+import { Send, Bot, User, ArrowLeft, RefreshCw, Sparkles, MessageSquare, Lock, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface Message {
@@ -13,6 +13,13 @@ export default function WebAgentChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authInput, setAuthInput] = useState('');
+  const [authKey, setAuthKey] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -26,6 +33,12 @@ export default function WebAgentChat() {
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
+
+    const userMessageCount = messages.filter(m => m.role === 'user').length;
+    if (userMessageCount >= 3 && !authKey) {
+      setShowAuthModal(true);
+      return;
+    }
 
     const userMessage = input.trim();
     setInput('');
@@ -45,12 +58,19 @@ export default function WebAgentChat() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userMessage,
-          history: messages
+          history: messages,
+          authKey
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
+        if (errorData.needsAuth) {
+          setShowAuthModal(true);
+          // 撤回刚添加的 userMessage，因为后端拒绝了
+          setMessages(prev => prev.slice(0, -1));
+          throw new Error('需要授权码才能继续使用');
+        }
         throw new Error(errorData.error || '发送失败');
       }
 
@@ -72,6 +92,30 @@ export default function WebAgentChat() {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
+    }
+  };
+
+  const verifyAuthCode = async () => {
+    if (!authInput.trim()) return;
+    setIsVerifying(true);
+    setAuthError(null);
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ verifyKey: authInput.trim() }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '验证失败');
+      }
+      setAuthKey(authInput.trim());
+      setShowAuthModal(false);
+      setAuthInput('');
+    } catch (err: any) {
+      setAuthError(err.message);
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -198,6 +242,67 @@ export default function WebAgentChat() {
           <div ref={messagesEndRef} />
         </div>
       </main>
+
+      {/* Auth Modal */}
+      <AnimatePresence>
+        {showAuthModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-slate-900/40 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-sm bg-white rounded-3xl shadow-xl overflow-hidden relative"
+            >
+              <div className="p-6">
+                <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-6">
+                  <Lock className="w-6 h-6" />
+                </div>
+                
+                <h3 className="text-lg font-bold text-slate-900 mb-2">
+                  您的体验次数已结束，如需申请授权码请联系管理者
+                </h3>
+                
+                <div className="mt-6 space-y-4">
+                  <input
+                    type="password"
+                    value={authInput}
+                    onChange={(e) => setAuthInput(e.target.value)}
+                    placeholder="输入授权码..."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-mono"
+                    onKeyDown={(e) => e.key === 'Enter' && verifyAuthCode()}
+                  />
+                  {authError && (
+                    <p className="text-red-500 text-sm font-medium">{authError}</p>
+                  )}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowAuthModal(false)}
+                      className="flex-1 px-4 py-3 bg-slate-100 text-slate-600 font-medium rounded-xl hover:bg-slate-200 transition-colors"
+                    >
+                      取消
+                    </button>
+                    <button
+                      onClick={verifyAuthCode}
+                      disabled={isVerifying || !authInput.trim()}
+                      className="flex-1 px-4 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                    >
+                      {isVerifying ? (
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        "确认"
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <p className="mt-6 text-center text-xs text-slate-400 font-medium tracking-wide">
+                  保护API钱包人人有责~
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Input */}
       <footer className="p-6 bg-white border-t border-slate-200">
