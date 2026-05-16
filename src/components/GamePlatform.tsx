@@ -18,7 +18,10 @@ import {
   Reply,
   Swords,
   Target,
-  Box
+  Box,
+  Heart,
+  Coffee,
+  Sparkles
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -56,6 +59,8 @@ interface Message {
   created_at: number;
   comments: Comment[];
 }
+
+
 
 export default function GamePlatform() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -617,6 +622,8 @@ export default function GamePlatform() {
           </div>
         </div>
       </section>
+
+
 
       {/* Master Footer */}
       <footer className="py-32 border-t border-slate-200 relative z-10 bg-white">
