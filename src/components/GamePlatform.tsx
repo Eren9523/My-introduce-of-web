@@ -42,37 +42,6 @@ const NEWS_SITES = [
   { name: '小黑盒', url: 'https://www.xiaoheihe.cn/', desc: 'HeyBox - 核心玩家', icon: 'https://www.xiaoheihe.cn/favicon.ico' }
 ];
 
-const LOCAL_FALLBACK_MESSAGES: Message[] = [
-  {
-    id: "m1",
-    author: "刘程旭",
-    content: "玩不玩守望先锋 ？",
-    created_at: new Date('2026-05-10T08:00:00Z').getTime(),
-    comments: [
-      {
-        id: "c1",
-        author: "源氏重工保安",
-        content: "狗都不玩，来打瓦罗兰特！我的 PC ID是 GenjiGuard。",
-        created_at: new Date('2026-05-10T09:12:00Z').getTime()
-      }
-    ]
-  },
-  {
-    id: "m2",
-    author: "千早爱音",
-    content: "为什么要演奏春日影？",
-    created_at: new Date('2026-05-11T14:30:00Z').getTime(),
-    comments: [
-      {
-        id: "c2",
-        author: "长崎爽世",
-        content: "你真的是什么都不懂呢。",
-        created_at: new Date('2026-05-11T14:35:00Z').getTime()
-      }
-    ]
-  }
-];
-
 interface Comment {
   id: string | number;
   author: string;
@@ -103,8 +72,6 @@ export default function GamePlatform() {
     return () => clearInterval(timer);
   }, []);
 
-  const [useFallback, setUseFallback] = useState(false);
-
   const formatTime = (date: Date | null) => {
     if (!date) return '刚刚';
     const nowMs = Date.now();
@@ -115,35 +82,34 @@ export default function GamePlatform() {
     return formatDistanceToNow(date, { addSuffix: true, locale: zhCN });
   };
 
-  useEffect(() => {
-    const fetchComments = async () => {
-      try {
-        const res = await fetch('/api/comments');
-        if (!res.ok) throw new Error('API failed');
-        const text = await res.text();
-        if (text.startsWith('<')) throw new Error('HTML fallback returned');
-        
-        const data = JSON.parse(text);
-        if (!Array.isArray(data) || data.length === 0) {
-           setMessages(LOCAL_FALLBACK_MESSAGES);
-        } else {
-           const topLevel = data.filter((d: any) => !d.parent_id);
-           const comments = data.filter((d: any) => d.parent_id);
+  const fetchComments = async () => {
+    try {
+      const res = await fetch('/api/comments');
+      if (!res.ok) throw new Error('API failed');
+      const text = await res.text();
+      if (text.startsWith('<')) throw new Error('HTML fallback returned');
+      
+      const data = JSON.parse(text);
+      if (!Array.isArray(data)) {
+         setMessages([]);
+      } else {
+         const topLevel = data.filter((d: any) => !d.parent_id);
+         const comments = data.filter((d: any) => d.parent_id);
 
-           const combined: Message[] = topLevel.map((msg: any) => {
-             const msgComments = comments.filter((c: any) => c.parent_id === msg.id);
-             msgComments.sort((a, b) => a.created_at - b.created_at);
-             return { ...msg, comments: msgComments } as Message;
-           });
-           setMessages(combined);
-        }
-      } catch (err) {
-        console.warn('API missing locally, using fallback data');
-        setUseFallback(true);
-        setMessages(LOCAL_FALLBACK_MESSAGES);
+         const combined: Message[] = topLevel.map((msg: any) => {
+           const msgComments = comments.filter((c: any) => c.parent_id === msg.id);
+           msgComments.sort((a, b) => a.created_at - b.created_at);
+           return { ...msg, comments: msgComments } as Message;
+         });
+         setMessages(combined);
       }
-    };
+    } catch (err) {
+      console.warn('API fetch failed:', err);
+      // Let it be empty if API fails
+    }
+  };
 
+  useEffect(() => {
     fetchComments();
   }, []);
 
@@ -160,18 +126,16 @@ export default function GamePlatform() {
     };
 
     try {
-      let createdId = newMsg.id;
-      if (!useFallback) {
-        const res = await fetch('/api/comments', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ author: newName, content: newContent })
-        });
-        if (!res.ok) throw new Error('POST failed');
-        const d = await res.json();
-        if (d.id) createdId = d.id;
-      }
-      newMsg.id = createdId;
+      const res = await fetch('/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ author: newName, content: newContent })
+      });
+      if (!res.ok) throw new Error('POST failed');
+      const d = await res.json();
+      if (d.id) newMsg.id = d.id;
+      
+      // Update local state
       setMessages(prev => [newMsg, ...prev]);
       setNewName('');
       setNewContent('');
@@ -183,9 +147,7 @@ export default function GamePlatform() {
 
   const handleDelete = async (id: string | number) => {
     try {
-      if (!useFallback) {
-        await fetch(`/api/comments?id=${id}`, { method: 'DELETE' });
-      }
+      await fetch(`/api/comments?id=${id}`, { method: 'DELETE' });
       setMessages(messages.filter(m => m.id !== id));
     } catch (err) {
       console.error(err);
@@ -203,18 +165,15 @@ export default function GamePlatform() {
     };
 
     try {
-      let createdId = newComment.id;
-      if (!useFallback) {
-        const res = await fetch('/api/comments', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ author: replyName, content: replyContent, parent_id: msgId })
-        });
-        if (!res.ok) throw new Error('POST failed');
-        const d = await res.json();
-        if (d.id) createdId = d.id;
-      }
-      newComment.id = createdId;
+      const res = await fetch('/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ author: replyName, content: replyContent, parent_id: msgId })
+      });
+      if (!res.ok) throw new Error('POST failed');
+      const d = await res.json();
+      if (d.id) newComment.id = d.id;
+      
       setMessages(messages.map(m => {
         if (m.id === msgId) {
           return { ...m, comments: [...(m.comments || []), newComment] };
@@ -232,9 +191,7 @@ export default function GamePlatform() {
 
   const handleDeleteComment = async (msgId: string | number, commentId: string | number) => {
     try {
-      if (!useFallback) {
-        await fetch(`/api/comments?id=${commentId}`, { method: 'DELETE' });
-      }
+      await fetch(`/api/comments?id=${commentId}`, { method: 'DELETE' });
       setMessages(messages.map(m => {
         if (m.id === msgId) {
           return { ...m, comments: (m.comments || []).filter(c => c.id !== commentId) };
