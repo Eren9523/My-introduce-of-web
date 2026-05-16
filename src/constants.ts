@@ -42,22 +42,6 @@ export interface Education {
 
 export const PROJECTS: Project[] = [
   {
-    id: 'ecom-calc',
-    title: 'E-Metric - 电商运营全能计算器',
-    description: '电商专家级的指标分析工具。内置 GMV、CVR、ROI、CPC 等 30+ 核心公式，深度集成跨境电商物流成本与汇率波动模型，助力数据驱动决策。',
-    tags: ['电商', '数据分析', '工具'],
-    link: '/ecom-calc',
-    imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1000'
-  },
-  {
-    id: 'sheet-flow',
-    title: 'SheetFlow - 智能表格自动化',
-    description: '办公自动化神器。基于 SheetJS 架构，实现浏览器端轻量化 Excel 处理。支持 VLOOKUP 批量匹配、自动化数据透视及 90% 常用办公公式的一键生成。',
-    tags: ['数据处理', '办公自动化', '算法'],
-    link: '/sheet-flow',
-    imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1000'
-  },
-  {
     id: 'web-agent',
     title: 'Web Agent - 在线 AI 智能代理',
     description: '极致轻量化、无需部署、随时随地在网页端开启的 AI 助手。主打超快响应速度与极简操作体验，为您提供即时、高效的智能化在线支持。',
@@ -66,12 +50,28 @@ export const PROJECTS: Project[] = [
     imageUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1000'
   },
   {
+    id: 'ecom-calc',
+    title: 'E-Metric - 电商运营全能计算器',
+    description: '电商专家级的指标分析工具。内置 GMV、CVR、ROI、CPC 等 30+ 核心公式，深度集成跨境电商物流成本与汇率波动模型，助力数据驱动决策。',
+    tags: ['电商', '数据分析', '工具'],
+    link: '/ecom-calc',
+    imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1000'
+  },
+  {
     id: 'open-claw',
     title: '茶茶 Open Claw - 本地 AI 智能体 (文件深控版)',
     description: '基于 Open Claw 自主代理架构的本地化硬核助手。深度集成底层文件系统，具备极强的环境感知与任务规划能力，支持毫秒级本地文件读写、格式转换与目录自动化管理。',
     tags: ['AI/LLM', 'Open Claw', '本地自动化'],
     github: 'https://github.com/Eren9523/SLFP',
     imageUrl: 'https://images.unsplash.com/photo-1504639725590-34d0984388bd?auto=format&fit=crop&q=80&w=1000'
+  },
+  {
+    id: 'sheet-flow',
+    title: 'SheetFlow - 智能表格自动化',
+    description: '办公自动化神器。基于 SheetJS 架构，实现浏览器端轻量化 Excel 处理。支持 VLOOKUP 批量匹配、自动化数据透视及 90% 常用办公公式的一键生成。',
+    tags: ['数据处理', '办公自动化', '算法'],
+    link: '/sheet-flow',
+    imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1000'
   },
   {
     id: 'game-social',
