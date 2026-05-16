@@ -24,10 +24,9 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
     const reqBody = (await context.request.json()) as any;
     const { author, content, parent_id } = reqBody;
     
-    // Use the current timestamp string or integer depending on how we want it
     const { meta, success, error } = await context.env.DB.prepare(
-      "INSERT INTO comments (content, author, created_at, parent_id) VALUES (?, ?, ?, ?)"
-    ).bind(content, author, Date.now(), parent_id || null).run();
+      "INSERT INTO comments (content, author, created_at, parent_id) VALUES (?, ?, datetime('now'), ?)"
+    ).bind(content, author, parent_id || null).run();
     
     if (!success) {
        return Response.json({ error: "DB Insert Failed", details: error }, { status: 500 });

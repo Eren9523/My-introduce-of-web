@@ -72,14 +72,29 @@ export default function GamePlatform() {
     return () => clearInterval(timer);
   }, []);
 
-  const formatTime = (date: Date | null) => {
-    if (!date) return '刚刚';
-    const nowMs = Date.now();
-    const diff = nowMs - date.getTime();
-    if (diff > 24 * 60 * 60 * 1000) {
-      return format(date, 'yyyy.M.d');
+  const renderTime = (utcTimeString: string | number) => {
+    if (!utcTimeString) return "";
+    let dateJson: Date;
+    if (typeof utcTimeString === 'number' || !String(utcTimeString).includes(' ')) {
+       // fallback for old millisecond timestamps
+       dateJson = new Date(Number(utcTimeString) > 10000000000 ? Number(utcTimeString) : utcTimeString);
+    } else {
+      const isoString = String(utcTimeString).replace(" ", "T") + "Z";
+      dateJson = new Date(isoString);
     }
-    return formatDistanceToNow(date, { addSuffix: true, locale: zhCN });
+    
+    if (isNaN(dateJson.getTime())) return "";
+
+    return dateJson.toLocaleString("zh-CN", {
+      timeZone: "Asia/Shanghai",
+      hour12: false,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
   };
 
   const fetchComments = async () => {
@@ -98,7 +113,16 @@ export default function GamePlatform() {
 
          const combined: Message[] = topLevel.map((msg: any) => {
            const msgComments = comments.filter((c: any) => String(c.parent_id) === String(msg.id));
-           msgComments.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+           msgComments.sort((a, b) => {
+             const getMs = (val: any) => {
+               if (!val) return 0;
+               if (typeof val === 'number') return val;
+               const str = String(val);
+               if (str.includes(' ')) return new Date(str.replace(' ', 'T') + 'Z').getTime();
+               return new Date(str).getTime() || Number(str);
+             };
+             return getMs(a.created_at) - getMs(b.created_at);
+           });
            return { ...msg, comments: msgComments } as Message;
          });
          setMessages(combined);
@@ -507,7 +531,7 @@ export default function GamePlatform() {
                     <div className="flex-1">
                       <div className="flex justify-between items-center mb-3">
                         <h4 className="text-xl font-black text-slate-900 uppercase tracking-tighter">{msg.author}</h4>
-                        <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full whitespace-nowrap">{formatTime(new Date(msg.created_at))}</span>
+                        <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full whitespace-nowrap">{renderTime(msg.created_at)}</span>
                       </div>
                       <p className="text-slate-500 font-medium leading-relaxed mb-6 whitespace-pre-wrap">{msg.content}</p>
                       
@@ -580,7 +604,7 @@ export default function GamePlatform() {
                           <div className="flex justify-between items-center mb-1">
                             <span className="text-sm font-black text-slate-900 uppercase tracking-tighter">{comment.author}</span>
                             <div className="flex items-center gap-3">
-                              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{formatTime(new Date(comment.created_at))}</span>
+                              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{renderTime(comment.created_at)}</span>
                               <button 
                                 onClick={() => handleDeleteComment(msg.id, comment.id)}
                                 className="opacity-0 group-hover/comment:opacity-100 text-slate-300 hover:text-rose-500 transition-all"
