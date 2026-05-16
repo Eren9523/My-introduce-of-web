@@ -31,8 +31,8 @@ const PLATFORMS = [
 
 const SOCIAL_INFOS = [
   { name: '邱鹏 (Owner)', bio: '深度游戏迷 / 平台开发者 / 游戏摄影师', steam: 'Eren9523', psn: 'Eren9523', switch: '0401-4279-6811', color: 'indigo', verified: true },
-  { name: '刘程旭', bio: '竞技对抗专家，全服前 1% 的操作手', steam: 'Chengxu_Sang', psn: 'CX_Liu_99', switch: '8888-7777-6666', color: 'green', verified: false },
-  { name: '张任云飞', bio: '二次元核心玩家，资深游戏测评师', steam: 'ChiChi', psn: 'ChiChi_Zero', switch: '1122-3344-5566', color: 'purple', verified: false }
+  { name: '刘程旭', bio: '守望先锋500强玩家，英雄不朽！独游、恐怖游戏、小众游戏爱好者。', steam: 'Chengxu_Sang', psn: 'CX_Liu_99', switch: '2548-7319-4802', color: 'green', verified: false },
+  { name: '张任云飞', bio: '三角洲行动粑粑宗弟子，机密绝密KD3.5~，”飞溅的粑~   到！！！！！！“', steam: 'ChiChi', psn: 'ChiChi_Zero', switch: '6193-8402-5716', color: 'purple', verified: false }
 ];
 
 const NEWS_SITES = [
