@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { db } from '../firebase';
-import { collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy, serverTimestamp, getDocs, writeBatch } from 'firebase/firestore';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { 
   Gamepad2, 
@@ -38,36 +36,68 @@ const SOCIAL_INFOS = [
 ];
 
 const NEWS_SITES = [
-  { name: '游民星空', url: 'https://www.gamersky.com/', desc: 'GameSky - 领先门户', icon: Globe },
-  { name: '3DM游戏网', url: 'https://www.3dmgame.com/', desc: '3DM - 汉化圣地', icon: Swords },
-  { name: '游侠网', url: 'https://www.ali213.net/', desc: 'Ali213 - 资深平台', icon: Target },
-  { name: '小黑盒', url: 'https://www.xiaoheihe.cn/', desc: 'HeyBox - 核心玩家', icon: Box }
+  { name: '游民星空', url: 'https://www.gamersky.com/', desc: 'GameSky - 领先门户', icon: 'https://www.gamersky.com/favicon.ico' },
+  { name: '3DM游戏网', url: 'https://www.3dmgame.com/', desc: '3DM - 汉化圣地', icon: 'https://www.3dmgame.com/favicon.ico' },
+  { name: '游侠网', url: 'https://www.ali213.net/', desc: 'Ali213 - 资深平台', icon: 'https://www.ali213.net/favicon.ico' },
+  { name: '小黑盒', url: 'https://www.xiaoheihe.cn/', desc: 'HeyBox - 核心玩家', icon: 'https://www.xiaoheihe.cn/favicon.ico' }
 ];
 
-interface Comment {
-  id: string;
-  user: string;
-  content: string;
-  time: string;
-  rawTime: Date | null;
-}
+const LOCAL_FALLBACK_MESSAGES: Message[] = [
+  {
+    id: "m1",
+    author: "刘程旭",
+    content: "玩不玩守望先锋 ？",
+    created_at: new Date('2026-05-10T08:00:00Z').getTime()
+  },
+  {
+    id: "c1",
+    author: "源氏重工保安",
+    content: "@刘程旭 狗都不玩，来打瓦罗兰特！我的 PC ID是 GenjiGuard。",
+    created_at: new Date('2026-05-10T09:12:00Z').getTime()
+  },
+  {
+    id: "m2",
+    author: "千早爱音",
+    content: "为什么要演奏春日影？",
+    created_at: new Date('2026-05-11T14:30:00Z').getTime()
+  },
+  {
+    id: "c2",
+    author: "长崎爽世",
+    content: "@千早爱音 你真的是什么都不懂呢。",
+    created_at: new Date('2026-05-11T14:35:00Z').getTime()
+  },
+  {
+    id: "m3",
+    author: "压力小子",
+    content: "有没有打派的？来三个压力怪，压力小了我不玩！PC 平台，ID: NoPressureNoPlay",
+    created_at: new Date('2026-05-12T20:00:00Z').getTime()
+  },
+  {
+    id: "m4",
+    author: "龙门粗口",
+    content: "兄弟们，地平线6有没有首发开荒跑墨西哥的？晚上8点上号，最好是个熟手，能麦来！我的Xbox ID: LungmenSwear",
+    created_at: new Date('2026-05-13T10:10:00Z').getTime()
+  },
+  {
+    id: "c3",
+    author: "漂移学徒",
+    content: "@龙门粗口 算我一个，我专门负责探图跑线。Steam: DrifterXZ",
+    created_at: new Date('2026-05-13T10:20:00Z').getTime()
+  }
+];
 
 interface Message {
-  id: string;
-  user: string;
+  id: string | number;
+  author: string;
   content: string;
-  time: string;
-  rawTime: Date | null;
-  comments: Comment[];
+  created_at: number;
 }
 
 export default function GamePlatform() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newName, setNewName] = useState('');
   const [newContent, setNewContent] = useState('');
-  const [replyTarget, setReplyTarget] = useState<string | null>(null);
-  const [replyName, setReplyName] = useState('');
-  const [replyContent, setReplyContent] = useState('');
 
   // Update timestamps every minute
   const [now, setNow] = useState(Date.now());
@@ -76,62 +106,63 @@ export default function GamePlatform() {
     return () => clearInterval(timer);
   }, []);
 
+  const [useFallback, setUseFallback] = useState(false);
+
   const formatTime = (date: Date | null) => {
     if (!date) return '刚刚';
+    const nowMs = Date.now();
+    const diff = nowMs - date.getTime();
+    if (diff > 24 * 60 * 60 * 1000) {
+      return format(date, 'yyyy.M.d');
+    }
     return formatDistanceToNow(date, { addSuffix: true, locale: zhCN });
   };
 
   useEffect(() => {
-    const messagesRef = collection(db, 'board_messages');
-    const q = query(messagesRef, orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const allDocs = snapshot.docs.map(doc => {
-        const data = doc.data();
-        let rawTime: Date = new Date();
-        if (data.createdAt?.toDate) {
-           rawTime = data.createdAt.toDate();
-        } else if (data.createdAt?.seconds) {
-           rawTime = new Date(data.createdAt.seconds * 1000);
-        } else if (data.createdAt instanceof Date) {
-           rawTime = data.createdAt;
-        } else if (typeof data.createdAt === 'number') {
-           rawTime = new Date(data.createdAt);
-        }
+    const fetchComments = async () => {
+      try {
+        const res = await fetch('/api/comments');
+        if (!res.ok) throw new Error('API failed');
+        const text = await res.text();
+        if (text.startsWith('<')) throw new Error('HTML fallback returned');
         
-        return {
-          id: doc.id,
-          ...data,
-          rawTime,
-        };
-      });
+        const data = JSON.parse(text);
+        if (!Array.isArray(data) || data.length === 0) {
+           setMessages(LOCAL_FALLBACK_MESSAGES);
+        } else {
+           setMessages(data);
+        }
+      } catch (err) {
+        console.warn('API missing locally, using fallback data');
+        setUseFallback(true);
+        setMessages(LOCAL_FALLBACK_MESSAGES);
+      }
+    };
 
-      // Split into top-level messages and comments
-      const topLevel = allDocs.filter((d: any) => !d.parentId);
-      const comments = allDocs.filter((d: any) => d.parentId);
-
-      const combined: Message[] = topLevel.map((msg: any) => {
-        const msgComments = comments.filter((c: any) => c.parentId === msg.id);
-        msgComments.sort((a, b) => a.rawTime?.getTime()! - b.rawTime?.getTime()!);
-        return { ...msg, comments: msgComments } as Message;
-      });
-
-      setMessages(combined);
-    });
-
-    return () => unsubscribe();
-  }, []); // Remove `now` from dependencies
+    fetchComments();
+  }, []);
 
   const handlePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName.trim() || !newContent.trim()) return;
+    
+    const newMsg: Message = {
+      id: crypto.randomUUID(),
+      author: newName,
+      content: newContent,
+      created_at: Date.now()
+    };
+
     try {
-      await addDoc(collection(db, 'board_messages'), {
-        user: newName,
-        content: newContent,
-        time: '刚刚',
-        createdAt: serverTimestamp(),
-        parentId: null
-      });
+      if (!useFallback) {
+        const res = await fetch('/api/comments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ author: newName, content: newContent })
+        });
+        if (!res.ok) throw new Error('POST failed');
+      }
+      setMessages(prev => [newMsg, ...prev]);
       setNewName('');
       setNewContent('');
     } catch (err) {
@@ -140,46 +171,20 @@ export default function GamePlatform() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string | number) => {
     try {
-      // Basic delete, also delete comments
-      const commentsToDelete = messages.find(m => m.id === id)?.comments || [];
-      const batch = writeBatch(db);
-      batch.delete(doc(db, 'board_messages', id));
-      commentsToDelete.forEach(c => {
-        batch.delete(doc(db, 'board_messages', c.id));
-      });
-      await batch.commit();
+      if (!useFallback) {
+        await fetch(`/api/comments?id=${id}`, { method: 'DELETE' });
+      }
+      setMessages(messages.filter(m => m.id !== id));
     } catch (err) {
       console.error(err);
     }
   };
 
-  const handleReply = async (msgId: string) => {
-    if (!replyName.trim() || !replyContent.trim()) return;
-    try {
-      await addDoc(collection(db, 'board_messages'), {
-        user: replyName,
-        content: replyContent,
-        time: '刚刚',
-        createdAt: serverTimestamp(),
-        parentId: msgId
-      });
-      setReplyTarget(null);
-      setReplyName('');
-      setReplyContent('');
-    } catch (err) {
-      console.error(err);
-      alert('回复失败，请重试');
-    }
-  };
-
-  const handleDeleteComment = async (msgId: string, commentId: string) => {
-    try {
-      await deleteDoc(doc(db, 'board_messages', commentId));
-    } catch (err) {
-      console.error(err);
-    }
+  const startReply = (authorName: string) => {
+    setNewContent(`@${authorName} `);
+    // Focus is handled manually by user
   };
 
   return (
@@ -406,7 +411,7 @@ export default function GamePlatform() {
                 className="group relative p-10 bg-white border border-slate-200 rounded-[3rem] overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all flex flex-col items-center"
               >
                 <div className="w-16 h-16 bg-slate-50 flex items-center justify-center mb-8 transition-all duration-500 overflow-hidden">
-                  <site.icon className="w-8 h-8 text-cyan-600 group-hover:scale-110 transition-transform" />
+                  <img src={site.icon} alt={site.name} className="w-8 h-8 rounded-lg outline outline-1 outline-slate-200/50 group-hover:scale-110 transition-transform bg-white" />
                 </div>
                 <h3 className="text-xl font-black mb-2 text-slate-800 uppercase tracking-tighter">{site.name}</h3>
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{site.desc}</p>
@@ -475,18 +480,18 @@ export default function GamePlatform() {
                     className="group bg-white border border-slate-200 p-8 rounded-[2.5rem] flex items-start gap-8 hover:shadow-lg transition-shadow"
                   >
                     <div className="w-16 h-16 rounded-2xl bg-cyan-50 flex items-center justify-center font-black text-2xl text-cyan-600 shrink-0 border border-cyan-100 group-hover:rotate-6 transition-transform">
-                      {msg.user[0]}
+                      {msg.author && msg.author[0] ? msg.author[0] : '?'}
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between items-center mb-3">
-                        <h4 className="text-xl font-black text-slate-900 uppercase tracking-tighter">{msg.user}</h4>
-                        <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full">{formatTime(msg.rawTime) || msg.time}</span>
+                        <h4 className="text-xl font-black text-slate-900 uppercase tracking-tighter">{msg.author}</h4>
+                        <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full whitespace-nowrap">{formatTime(new Date(msg.created_at))}</span>
                       </div>
-                      <p className="text-slate-500 font-medium leading-relaxed mb-6">{msg.content}</p>
+                      <p className="text-slate-500 font-medium leading-relaxed mb-6 whitespace-pre-wrap">{msg.content}</p>
                       
                       <div className="flex items-center gap-4 border-t border-slate-100 pt-4">
                         <button 
-                          onClick={() => setReplyTarget(replyTarget === msg.id ? null : msg.id)}
+                          onClick={() => startReply(msg.author)}
                           className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-cyan-600 transition-colors"
                         >
                           <Reply className="w-3 h-3" />
@@ -502,71 +507,6 @@ export default function GamePlatform() {
                       </div>
                     </div>
                   </motion.div>
-
-                  {/* Reply Form */}
-                  <AnimatePresence>
-                    {replyTarget === msg.id && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="ml-24 mt-4 overflow-hidden"
-                      >
-                        <div className="bg-slate-50 border border-slate-200 p-6 rounded-3xl">
-                          <input 
-                            type="text" 
-                            placeholder="回复 ID..." 
-                            value={replyName}
-                            onChange={e => setReplyName(e.target.value)}
-                            className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 mb-3 text-xs font-bold focus:outline-none focus:border-cyan-500"
-                          />
-                          <textarea 
-                            placeholder="输入评论..." 
-                            value={replyContent}
-                            onChange={e => setReplyContent(e.target.value)}
-                            className="w-full h-20 bg-white border border-slate-200 rounded-xl px-4 py-2 mb-3 text-xs font-medium focus:outline-none focus:border-cyan-500 resize-none"
-                          />
-                          <button 
-                            onClick={() => handleReply(msg.id)}
-                            className="w-full py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-cyan-600 transition-colors"
-                          >
-                            发送评论
-                          </button>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {/* Comments List */}
-                  <div className="ml-24 mt-4 space-y-4">
-                    {msg.comments.map(comment => (
-                      <motion.div 
-                        key={comment.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="bg-slate-50/50 border border-slate-100 p-6 rounded-3xl flex items-start gap-4 group/comment"
-                      >
-                        <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-black text-slate-400 text-sm">
-                          {comment.user[0]}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="text-sm font-black text-slate-900 uppercase tracking-tighter">{comment.user}</span>
-                            <div className="flex items-center gap-3">
-                              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{formatTime(comment.rawTime) || comment.time}</span>
-                              <button 
-                                onClick={() => handleDeleteComment(msg.id, comment.id)}
-                                className="opacity-0 group-hover/comment:opacity-100 text-slate-300 hover:text-rose-500 transition-all"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </button>
-                            </div>
-                          </div>
-                          <p className="text-xs text-slate-500 font-medium">{comment.content}</p>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
                 </div>
               ))}
             </AnimatePresence>
