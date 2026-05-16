@@ -112,7 +112,11 @@ export default function GamePlatform() {
          const comments = data.filter((d: any) => d.parent_id);
 
          const combined: Message[] = topLevel.map((msg: any) => {
-           const msgComments = comments.filter((c: any) => String(c.parent_id) === String(msg.id));
+           const msgComments = comments.filter((c: any) => {
+             const parentIdStr = String(c.parent_id).replace(/\.0$/, '');
+             const msgIdStr = String(msg.id).replace(/\.0$/, '');
+             return parentIdStr === msgIdStr;
+           });
            msgComments.sort((a, b) => {
              const getMs = (val: any) => {
                if (!val) return 0;
@@ -162,8 +166,8 @@ export default function GamePlatform() {
       const d = await res.json();
       if (d.id) newMsg.id = d.id;
       
-      // Update local state
-      setMessages(prev => [newMsg, ...prev]);
+      // Fetch fresh data
+      await fetchComments();
       setNewName('');
       setNewContent('');
     } catch (err) {
@@ -175,7 +179,7 @@ export default function GamePlatform() {
   const handleDelete = async (id: string | number) => {
     try {
       await fetch(`/api/comments?id=${id}`, { method: 'DELETE' });
-      setMessages(messages.filter(m => m.id !== id));
+      await fetchComments();
     } catch (err) {
       console.error(err);
     }
@@ -202,14 +206,8 @@ export default function GamePlatform() {
         throw new Error(`POST failed: ${text}`);
       }
       const d = await res.json();
-      if (d.id) newComment.id = d.id;
       
-      setMessages(messages.map(m => {
-        if (m.id === msgId) {
-          return { ...m, comments: [...(m.comments || []), newComment] };
-        }
-        return m;
-      }));
+      await fetchComments();
       setReplyTarget(null);
       setReplyName('');
       setReplyContent('');
@@ -222,12 +220,7 @@ export default function GamePlatform() {
   const handleDeleteComment = async (msgId: string | number, commentId: string | number) => {
     try {
       await fetch(`/api/comments?id=${commentId}`, { method: 'DELETE' });
-      setMessages(messages.map(m => {
-        if (m.id === msgId) {
-          return { ...m, comments: (m.comments || []).filter(c => c.id !== commentId) };
-        }
-        return m;
-      }));
+      await fetchComments();
     } catch (err) {
       console.error(err);
     }
