@@ -7,12 +7,8 @@ service cloud.firestore {
     
     match /board_messages/{messageId} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['user', 'content', 'time', 'createdAt', 'parentId'])
-                    && request.resource.data.user is string
-                    && request.resource.data.content is string
-                    && request.resource.data.time is string
-                    && (request.resource.data.parentId is string || request.resource.data.parentId == null)
-                    && request.resource.data.createdAt == request.time;
+      allow create: if request.resource.data.user is string
+                    && request.resource.data.content is string;
       allow update: if false;
       allow delete: if true; // basic allow delete for demo
     }

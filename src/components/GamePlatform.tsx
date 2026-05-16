@@ -87,15 +87,21 @@ export default function GamePlatform() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const allDocs = snapshot.docs.map(doc => {
         const data = doc.data();
-        let rawTime: Date | null = null;
+        let rawTime: Date = new Date();
         if (data.createdAt?.toDate) {
-          rawTime = data.createdAt.toDate();
+           rawTime = data.createdAt.toDate();
+        } else if (data.createdAt?.seconds) {
+           rawTime = new Date(data.createdAt.seconds * 1000);
+        } else if (data.createdAt instanceof Date) {
+           rawTime = data.createdAt;
+        } else if (typeof data.createdAt === 'number') {
+           rawTime = new Date(data.createdAt);
         }
+        
         return {
           id: doc.id,
           ...data,
           rawTime,
-          time: rawTime ? formatTime(rawTime) : '刚刚',
         };
       });
 
@@ -113,7 +119,7 @@ export default function GamePlatform() {
     });
 
     return () => unsubscribe();
-  }, [now]);
+  }, []); // Remove `now` from dependencies
 
   const handlePost = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -474,7 +480,7 @@ export default function GamePlatform() {
                     <div className="flex-1">
                       <div className="flex justify-between items-center mb-3">
                         <h4 className="text-xl font-black text-slate-900 uppercase tracking-tighter">{msg.user}</h4>
-                        <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full">{msg.time}</span>
+                        <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full">{formatTime(msg.rawTime) || msg.time}</span>
                       </div>
                       <p className="text-slate-500 font-medium leading-relaxed mb-6">{msg.content}</p>
                       
@@ -547,7 +553,7 @@ export default function GamePlatform() {
                           <div className="flex justify-between items-center mb-1">
                             <span className="text-sm font-black text-slate-900 uppercase tracking-tighter">{comment.user}</span>
                             <div className="flex items-center gap-3">
-                              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{comment.time}</span>
+                              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{formatTime(comment.rawTime) || comment.time}</span>
                               <button 
                                 onClick={() => handleDeleteComment(msg.id, comment.id)}
                                 className="opacity-0 group-hover/comment:opacity-100 text-slate-300 hover:text-rose-500 transition-all"
