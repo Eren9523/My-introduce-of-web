@@ -47,57 +47,54 @@ const LOCAL_FALLBACK_MESSAGES: Message[] = [
     id: "m1",
     author: "刘程旭",
     content: "玩不玩守望先锋 ？",
-    created_at: new Date('2026-05-10T08:00:00Z').getTime()
-  },
-  {
-    id: "c1",
-    author: "源氏重工保安",
-    content: "@刘程旭 狗都不玩，来打瓦罗兰特！我的 PC ID是 GenjiGuard。",
-    created_at: new Date('2026-05-10T09:12:00Z').getTime()
+    created_at: new Date('2026-05-10T08:00:00Z').getTime(),
+    comments: [
+      {
+        id: "c1",
+        author: "源氏重工保安",
+        content: "狗都不玩，来打瓦罗兰特！我的 PC ID是 GenjiGuard。",
+        created_at: new Date('2026-05-10T09:12:00Z').getTime()
+      }
+    ]
   },
   {
     id: "m2",
     author: "千早爱音",
     content: "为什么要演奏春日影？",
-    created_at: new Date('2026-05-11T14:30:00Z').getTime()
-  },
-  {
-    id: "c2",
-    author: "长崎爽世",
-    content: "@千早爱音 你真的是什么都不懂呢。",
-    created_at: new Date('2026-05-11T14:35:00Z').getTime()
-  },
-  {
-    id: "m3",
-    author: "压力小子",
-    content: "有没有打派的？来三个压力怪，压力小了我不玩！PC 平台，ID: NoPressureNoPlay",
-    created_at: new Date('2026-05-12T20:00:00Z').getTime()
-  },
-  {
-    id: "m4",
-    author: "龙门粗口",
-    content: "兄弟们，地平线6有没有首发开荒跑墨西哥的？晚上8点上号，最好是个熟手，能麦来！我的Xbox ID: LungmenSwear",
-    created_at: new Date('2026-05-13T10:10:00Z').getTime()
-  },
-  {
-    id: "c3",
-    author: "漂移学徒",
-    content: "@龙门粗口 算我一个，我专门负责探图跑线。Steam: DrifterXZ",
-    created_at: new Date('2026-05-13T10:20:00Z').getTime()
+    created_at: new Date('2026-05-11T14:30:00Z').getTime(),
+    comments: [
+      {
+        id: "c2",
+        author: "长崎爽世",
+        content: "你真的是什么都不懂呢。",
+        created_at: new Date('2026-05-11T14:35:00Z').getTime()
+      }
+    ]
   }
 ];
 
-interface Message {
+interface Comment {
   id: string | number;
   author: string;
   content: string;
   created_at: number;
 }
 
+interface Message {
+  id: string | number;
+  author: string;
+  content: string;
+  created_at: number;
+  comments: Comment[];
+}
+
 export default function GamePlatform() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newName, setNewName] = useState('');
   const [newContent, setNewContent] = useState('');
+  const [replyTarget, setReplyTarget] = useState<string | number | null>(null);
+  const [replyName, setReplyName] = useState('');
+  const [replyContent, setReplyContent] = useState('');
 
   // Update timestamps every minute
   const [now, setNow] = useState(Date.now());
@@ -130,7 +127,15 @@ export default function GamePlatform() {
         if (!Array.isArray(data) || data.length === 0) {
            setMessages(LOCAL_FALLBACK_MESSAGES);
         } else {
-           setMessages(data);
+           const topLevel = data.filter((d: any) => !d.parent_id);
+           const comments = data.filter((d: any) => d.parent_id);
+
+           const combined: Message[] = topLevel.map((msg: any) => {
+             const msgComments = comments.filter((c: any) => c.parent_id === msg.id);
+             msgComments.sort((a, b) => a.created_at - b.created_at);
+             return { ...msg, comments: msgComments } as Message;
+           });
+           setMessages(combined);
         }
       } catch (err) {
         console.warn('API missing locally, using fallback data');
@@ -150,10 +155,12 @@ export default function GamePlatform() {
       id: crypto.randomUUID(),
       author: newName,
       content: newContent,
-      created_at: Date.now()
+      created_at: Date.now(),
+      comments: []
     };
 
     try {
+      let createdId = newMsg.id;
       if (!useFallback) {
         const res = await fetch('/api/comments', {
           method: 'POST',
@@ -161,7 +168,10 @@ export default function GamePlatform() {
           body: JSON.stringify({ author: newName, content: newContent })
         });
         if (!res.ok) throw new Error('POST failed');
+        const d = await res.json();
+        if (d.id) createdId = d.id;
       }
+      newMsg.id = createdId;
       setMessages(prev => [newMsg, ...prev]);
       setNewName('');
       setNewContent('');
@@ -177,6 +187,60 @@ export default function GamePlatform() {
         await fetch(`/api/comments?id=${id}`, { method: 'DELETE' });
       }
       setMessages(messages.filter(m => m.id !== id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleReply = async (msgId: string | number) => {
+    if (!replyName.trim() || !replyContent.trim()) return;
+    
+    const newComment: Comment = {
+      id: crypto.randomUUID(),
+      author: replyName,
+      content: replyContent,
+      created_at: Date.now()
+    };
+
+    try {
+      let createdId = newComment.id;
+      if (!useFallback) {
+        const res = await fetch('/api/comments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ author: replyName, content: replyContent, parent_id: msgId })
+        });
+        if (!res.ok) throw new Error('POST failed');
+        const d = await res.json();
+        if (d.id) createdId = d.id;
+      }
+      newComment.id = createdId;
+      setMessages(messages.map(m => {
+        if (m.id === msgId) {
+          return { ...m, comments: [...(m.comments || []), newComment] };
+        }
+        return m;
+      }));
+      setReplyTarget(null);
+      setReplyName('');
+      setReplyContent('');
+    } catch (err) {
+      console.error(err);
+      alert('回复失败，请重试');
+    }
+  };
+
+  const handleDeleteComment = async (msgId: string | number, commentId: string | number) => {
+    try {
+      if (!useFallback) {
+        await fetch(`/api/comments?id=${commentId}`, { method: 'DELETE' });
+      }
+      setMessages(messages.map(m => {
+        if (m.id === msgId) {
+          return { ...m, comments: (m.comments || []).filter(c => c.id !== commentId) };
+        }
+        return m;
+      }));
     } catch (err) {
       console.error(err);
     }
@@ -491,7 +555,7 @@ export default function GamePlatform() {
                       
                       <div className="flex items-center gap-4 border-t border-slate-100 pt-4">
                         <button 
-                          onClick={() => startReply(msg.author)}
+                          onClick={() => setReplyTarget(replyTarget === msg.id ? null : msg.id)}
                           className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-cyan-600 transition-colors"
                         >
                           <Reply className="w-3 h-3" />
@@ -507,6 +571,71 @@ export default function GamePlatform() {
                       </div>
                     </div>
                   </motion.div>
+
+                  {/* Reply Form */}
+                  <AnimatePresence>
+                    {replyTarget === msg.id && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="ml-24 mt-4 overflow-hidden"
+                      >
+                        <div className="bg-slate-50 border border-slate-200 p-6 rounded-3xl">
+                          <input 
+                            type="text" 
+                            placeholder="回复 ID..." 
+                            value={replyName}
+                            onChange={e => setReplyName(e.target.value)}
+                            className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 mb-3 text-xs font-bold focus:outline-none focus:border-cyan-500"
+                          />
+                          <textarea 
+                            placeholder="输入评论..." 
+                            value={replyContent}
+                            onChange={e => setReplyContent(e.target.value)}
+                            className="w-full h-20 bg-white border border-slate-200 rounded-xl px-4 py-2 mb-3 text-xs font-medium focus:outline-none focus:border-cyan-500 resize-none"
+                          />
+                          <button 
+                            onClick={() => handleReply(msg.id)}
+                            className="w-full py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-cyan-600 transition-colors"
+                          >
+                            发送评论
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Comments List */}
+                  <div className="ml-24 mt-4 space-y-4">
+                    {(msg.comments || []).map(comment => (
+                      <motion.div 
+                        key={comment.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="bg-slate-50/50 border border-slate-100 p-6 rounded-3xl flex items-start gap-4 group/comment"
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-black text-slate-400 text-sm">
+                          {comment.author && comment.author[0] ? comment.author[0] : '?'}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-sm font-black text-slate-900 uppercase tracking-tighter">{comment.author}</span>
+                            <div className="flex items-center gap-3">
+                              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{formatTime(new Date(comment.created_at))}</span>
+                              <button 
+                                onClick={() => handleDeleteComment(msg.id, comment.id)}
+                                className="opacity-0 group-hover/comment:opacity-100 text-slate-300 hover:text-rose-500 transition-all"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-500 font-medium whitespace-pre-wrap">{comment.content}</p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </AnimatePresence>
