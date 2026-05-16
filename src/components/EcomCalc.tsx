@@ -279,7 +279,7 @@ export default function EcomCalc() {
                           value={inputs[input.key] || ''}
                           onChange={(e) => setInputs({...inputs, [input.key]: e.target.value})}
                           placeholder={input.placeholder}
-                          className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-xl font-bold focus:outline-none focus:border-emerald-500 focus:bg-white transition-all peer"
+                          className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-xl font-bold focus:outline-none focus:border-emerald-500 focus:bg-white transition-all peer [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         />
                         <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 peer-focus:opacity-100 transition-opacity">
                           <CheckCircle2 className="w-5 h-5 text-emerald-500" />
@@ -327,89 +327,6 @@ export default function EcomCalc() {
               </div>
             </motion.div>
 
-            {/* Report Modal */}
-            <AnimatePresence>
-              {showReport && (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 print:relative print:block print:bg-white print:p-0 print:inset-auto"
-                >
-                    <motion.div 
-                    id="report-to-print"
-                    initial={{ scale: 0.9, y: 20 }}
-                    animate={{ scale: 1, y: 0 }}
-                    exit={{ scale: 0.9, y: 20 }}
-                    className="bg-white rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl print:shadow-none print:rounded-none print:max-w-none print:m-0 print:w-full print:h-auto print:static print:transform-none !print:opacity-100"
-                  >
-                    <style>{`
-                      @media print {
-                        @page {
-                          size: A4;
-                          margin: 1cm;
-                        }
-                        /* Ensure text is dark and backgrounds are clear */
-                        .bg-emerald-950 {
-                          background-color: white !important;
-                          color: #064e3b !important;
-                          border-bottom: 2px solid #064e3b !important;
-                        }
-                        .text-emerald-400 {
-                          color: #059669 !important;
-                        }
-                      }
-                    `}</style>
-                    <div className="p-8 bg-emerald-950 text-white relative print:bg-white print:text-slate-900 print:border-b print:border-slate-200">
-                      <div className="absolute top-0 right-0 p-4 print:hidden">
-                        <button 
-                          onClick={() => setShowReport(false)}
-                          className="p-2 hover:bg-white/10 rounded-full transition-colors"
-                        >
-                          <ArrowLeft className="w-5 h-5 rotate-90" />
-                        </button>
-                      </div>
-                      <h3 className="text-2xl font-black tracking-tight mb-2">业务分析报告</h3>
-                      <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest print:text-slate-500">Analysis Summary Report</p>
-                    </div>
-                    
-                    <div className="p-8 space-y-6">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">分析项 / Metric Name</label>
-                        <p className="text-xl font-bold text-slate-900">{activeFormula.name}</p>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        {activeFormula.inputs.map(input => (
-                          <div key={input.key} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">{input.label}</label>
-                             <p className="text-lg font-black text-slate-700">{inputs[input.key]} <span className="text-[10px] text-slate-400 ml-1">{input.unit}</span></p>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
-                        <div>
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">关键结果 / Final Result</label>
-                          <p className="text-3xl font-black text-emerald-600">{result.toLocaleString()} {activeFormula.resultUnit}</p>
-                        </div>
-                        <div className="w-20 h-20 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-200">
-                          <CheckCircle2 className="w-10 h-10 text-emerald-500" />
-                        </div>
-                      </div>
-
-                      <button 
-                        onClick={() => window.print()}
-                        className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-emerald-600 transition-all flex items-center justify-center gap-2 print:hidden"
-                      >
-                        <RefreshCw className="w-4 h-4" /> 打印报告
-                      </button>
-                    </div>
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
             {/* Recommendations or common knowledge section */}
             <div className="grid md:grid-cols-3 gap-4">
               {[
@@ -432,6 +349,89 @@ export default function EcomCalc() {
           </div>
         </div>
       </main>
+
+      {/* Report Modal */}
+      <AnimatePresence>
+        {showReport && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 print:relative print:block print:bg-white print:p-0 print:inset-auto"
+          >
+              <motion.div 
+              id="report-to-print"
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl print:shadow-none print:rounded-none print:max-w-none print:m-0 print:w-full print:h-auto print:static print:transform-none !print:opacity-100"
+            >
+              <style>{`
+                @media print {
+                  @page {
+                    size: A4;
+                    margin: 1cm;
+                  }
+                  /* Ensure text is dark and backgrounds are clear */
+                  .bg-emerald-950 {
+                    background-color: white !important;
+                    color: #064e3b !important;
+                    border-bottom: 2px solid #064e3b !important;
+                  }
+                  .text-emerald-400 {
+                    color: #059669 !important;
+                  }
+                }
+              `}</style>
+              <div className="p-8 bg-emerald-950 text-white relative print:bg-white print:text-slate-900 print:border-b print:border-slate-200">
+                <div className="absolute top-0 right-0 p-4 print:hidden">
+                  <button 
+                    onClick={() => setShowReport(false)}
+                    className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                  >
+                    <ArrowLeft className="w-5 h-5 rotate-90" />
+                  </button>
+                </div>
+                <h3 className="text-2xl font-black tracking-tight mb-2">业务分析报告</h3>
+                <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest print:text-slate-500">Analysis Summary Report</p>
+              </div>
+              
+              <div className="p-8 space-y-6">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">分析项 / Metric Name</label>
+                  <p className="text-xl font-bold text-slate-900">{activeFormula.name}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {activeFormula.inputs.map(input => (
+                    <div key={input.key} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">{input.label}</label>
+                       <p className="text-lg font-black text-slate-700">{inputs[input.key]} <span className="text-[10px] text-slate-400 ml-1">{input.unit}</span></p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
+                  <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">关键结果 / Final Result</label>
+                    <p className="text-3xl font-black text-emerald-600">{result.toLocaleString()} {activeFormula.resultUnit}</p>
+                  </div>
+                  <div className="w-20 h-20 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-200">
+                    <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => window.print()}
+                  className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-emerald-600 transition-all flex items-center justify-center gap-2 print:hidden"
+                >
+                  <RefreshCw className="w-4 h-4" /> 打印报告
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <footer className="mt-20 border-t border-slate-200 bg-white py-12 print:hidden">
         <div className="max-w-7xl mx-auto px-6 text-center">
