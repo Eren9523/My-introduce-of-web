@@ -1,50 +1,69 @@
-import { GoogleGenAI } from "@google/genai";
-
 export async function onRequestPost(context: any) {
   // context 包含 request (前端发来的请求) 和 env (云端配置的环境变量)
   const { request, env } = context;
 
   try {
-    // 1. 精确解析你 WebAgent.tsx 发来的 body 数据
+    // 1. 获取前端传来的 JSON 数据 (保持 WebAgent.tsx 完全不变)
     const body = await request.json();
     const { message, history } = body;
 
-    // 2. 密钥安全拦截
-    if (!env.GEMINI_API_KEY) {
-      return new Response(JSON.stringify({ error: "服务器未配置 API Key" }), {
+    // 2. 检查 DeepSeek 密钥是否配置
+    if (!env.DEEPSEEK_API_KEY) {
+      return new Response(JSON.stringify({ error: "云端未配置 DEEPSEEK_API_KEY" }), {
         status: 500,
         headers: { "Content-Type": "application/json" }
       });
     }
 
-    // 3. 呼叫大模型
-    const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
-    
-    // 适配模型所需的历史记录格式
-    const formattedHistory = (history || []).map((msg: any) => ({
-      role: msg.role,
-      parts: msg.parts.map((p: any) => ({ text: p.text }))
+    // 3. 数据格式翻译 (核心逻辑)
+    // 将前端的 Gemini 格式翻译成 DeepSeek (OpenAI 标准) 格式
+    const messages = (history || []).map((msg: any) => ({
+      role: msg.role === 'model' ? 'assistant' : msg.role,
+      content: msg.parts[0].text
     }));
 
-    const chat = ai.chats.create({
-      model: "gemini-2.5-flash",
-      config: {
-        systemInstruction: "You are a helpful AI assistant. Be concise and friendly.",
-        temperature: 0.7,
-      },
-      history: formattedHistory
+    // 把当前用户的新消息加到数组最后
+    messages.push({ role: 'user', content: message });
+
+    // 可以在最前面插入一个系统提示词，给你的 AI 定基调
+    messages.unshift({ 
+      role: 'system', 
+      content: "You are a helpful AI assistant. Be concise and friendly." 
     });
 
-    const response = await chat.sendMessage({ message: message });
+    // 4. 发送请求给 DeepSeek 官方接口
+    const deepseekResponse = await fetch("https://api.deepseek.com/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${env.DEEPSEEK_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat", // 这里的 model 字段是你要调用的模型名称
+        messages: messages,
+        temperature: 0.7
+      })
+    });
 
-    // 4. 返回标准 JSON 给前端 (这正是前端 const data = await response.json() 期待的)
-    return new Response(JSON.stringify({ text: response.text }), {
+    // 5. 错误捕获
+    if (!deepseekResponse.ok) {
+       const errorData = await deepseekResponse.json();
+       throw new Error(errorData.error?.message || "DeepSeek API 请求失败");
+    }
+
+    // 6. 解析 DeepSeek 的返回结果
+    const data = await deepseekResponse.json();
+    // DeepSeek 返回的文本藏在 choices[0].message.content 里
+    const replyText = data.choices[0].message.content;
+
+    // 7. 按照前端期待的格式原样返回
+    return new Response(JSON.stringify({ text: replyText }), {
       status: 200,
       headers: { "Content-Type": "application/json" }
     });
 
   } catch (error: any) {
-    // 返回标准格式的错误信息给前端的 catch 块
+    // 捕获异常并返回标准格式
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { "Content-Type": "application/json" }
