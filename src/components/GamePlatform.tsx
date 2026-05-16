@@ -131,7 +131,10 @@ export default function GamePlatform() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ author: newName, content: newContent })
       });
-      if (!res.ok) throw new Error('POST failed');
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`POST failed: ${text}`);
+      }
       const d = await res.json();
       if (d.id) newMsg.id = d.id;
       
@@ -170,7 +173,10 @@ export default function GamePlatform() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ author: replyName, content: replyContent, parent_id: msgId })
       });
-      if (!res.ok) throw new Error('POST failed');
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`POST failed: ${text}`);
+      }
       const d = await res.json();
       if (d.id) newComment.id = d.id;
       
