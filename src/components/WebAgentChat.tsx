@@ -13,6 +13,8 @@ export default function WebAgentChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [modelName, setModelName] = useState('deepseek-v4-pro');
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authInput, setAuthInput] = useState('');
@@ -30,6 +32,28 @@ export default function WebAgentChat() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    const PROMPT_POOL = [
+      "帮我生成一段朋友圈营销文案",
+      "解释一下用大白话解释量子纠缠",
+      "制定一份新手一周减脂健身计划",
+      "帮我翻译这封商务开发邮件",
+      "用 Python 写一个贪吃蛇小游戏",
+      "今天有什么重要的国际新闻吗？",
+      "有什么适合周末去的小众旅游目的地推荐？",
+      "我是独游爱好者，推荐几部独立小游戏",
+      "推荐几部豆瓣高分的悬疑电影",
+      "如何向老板提出加薪的请求？",
+      "请用鲁迅的语气写一篇关于现代人天天看手机的文章",
+      "解释一下前端的虚拟 DOM 是怎么工作的",
+      "帮我写一段快手带货直播的开场白",
+      "帮我规划一下去日本京都的三天两夜行程",
+      "怎么在面试中回答“你最大的缺点是什么”？"
+    ];
+    const shuffled = [...PROMPT_POOL].sort(() => 0.5 - Math.random());
+    setSuggestions(shuffled.slice(0, 4));
+  }, []);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -59,7 +83,8 @@ export default function WebAgentChat() {
         body: JSON.stringify({
           message: userMessage,
           history: messages,
-          authKey
+          authKey,
+          model: modelName
         }),
       });
 
@@ -174,12 +199,7 @@ export default function WebAgentChat() {
                 我可以协助您完成信息查询、文案创作、代码编写及多种自动化任务。
               </p>
               <div className="grid grid-cols-2 gap-3 w-full max-w-md pt-4">
-                {[
-                  "帮我生成一段营销文案",
-                  "解释一下 React Hook",
-                  "制定一份健身计划",
-                  "翻译几句地道的英文"
-                ].map(suggestion => (
+                {suggestions.map(suggestion => (
                   <button 
                     key={suggestion}
                     onClick={() => {
@@ -296,7 +316,7 @@ export default function WebAgentChat() {
                 </div>
 
                 <p className="mt-6 text-center text-xs text-slate-400 font-medium tracking-wide">
-                  保护API钱包人人有责~
+                  保护钱包人人有责~
                 </p>
               </div>
             </motion.div>
@@ -329,7 +349,7 @@ export default function WebAgentChat() {
           </button>
         </div>
         <p className="text-center text-[10px] text-slate-400 mt-4 font-medium uppercase tracking-wider">
-          Powered by Gemini 2.0 Flash Agent
+          Powered by {modelName}
         </p>
       </footer>
     </div>

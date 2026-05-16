@@ -63,7 +63,7 @@ export async function onRequestPost(context: any) {
         "Authorization": `Bearer ${env.DEEPSEEK_API_KEY}`
       },
       body: JSON.stringify({
-        model: "deepseek-v4-pro", // 这里的 model 字段是你要调用的模型名称
+        model: body.model || "deepseek-v4-pro", // 这里的 model 字段是你要调用的模型名称
         messages: messages,
         temperature: 0.7
       })
