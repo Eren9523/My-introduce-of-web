@@ -1,10 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'motion/react';
-import { Github, ExternalLink, Code } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Github, ExternalLink, Code, X } from 'lucide-react';
 import { PROJECTS } from '../constants';
 
 export default function Projects() {
+  const [showWebAgentTip, setShowWebAgentTip] = useState(true);
+  const [hasEnteredView, setHasEnteredView] = useState(false);
+
+  useEffect(() => {
+    if (hasEnteredView && showWebAgentTip) {
+      const timer = setTimeout(() => {
+        setShowWebAgentTip(false);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [hasEnteredView, showWebAgentTip]);
+
   return (
     <section id="projects" className="py-24 bg-white">
       <div className="container mx-auto px-6 max-w-6xl">
@@ -23,7 +35,7 @@ export default function Projects() {
             const CardWrapper = ({ children }: { children: React.ReactNode }) => {
               if (isInternal && project.link) {
                 return (
-                  <Link to={project.link} className="block group">
+                  <Link to={project.link} className="block h-full group">
                     {children}
                   </Link>
                 );
@@ -33,7 +45,7 @@ export default function Projects() {
                   href={targetUrl} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="block group"
+                  className="block h-full group"
                 >
                   {children}
                 </a>
@@ -47,10 +59,16 @@ export default function Projects() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 viewport={{ once: true }}
+                onViewportEnter={() => {
+                  if (project.id === 'web-agent') {
+                    setHasEnteredView(true);
+                  }
+                }}
+                className="h-full relative"
               >
                 <CardWrapper>
-                  <div className="border border-slate-200 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                    <div className="aspect-video relative overflow-hidden bg-slate-100">
+                  <div className="flex flex-col h-full border border-slate-200 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div className="aspect-video relative overflow-hidden bg-slate-100 shrink-0">
                       <img 
                         src={project.imageUrl} 
                         alt={project.title}
@@ -65,14 +83,14 @@ export default function Projects() {
                       </div>
                     </div>
                     
-                    <div className="p-6">
+                    <div className="p-6 flex flex-col flex-1">
                       <h3 className="text-xl font-bold mb-2 group-hover:text-indigo-600 transition-colors">
                         {project.title}
                       </h3>
                       <p className="text-slate-600 mb-6 line-clamp-3 leading-relaxed">
                         {project.description}
                       </p>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2 mt-auto">
                         {project.tags.map(tag => (
                           <span key={tag} className="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-full">
                             {tag}
@@ -82,6 +100,45 @@ export default function Projects() {
                     </div>
                   </div>
                 </CardWrapper>
+
+                <AnimatePresence>
+                  {project.id === 'web-agent' && showWebAgentTip && (
+                    <div className="absolute -top-16 left-0 right-0 flex justify-center z-20 pointer-events-none">
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1, y: [0, -8, 0] }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ 
+                          opacity: { duration: 0.3 }, 
+                          scale: { duration: 0.3 },
+                          y: { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
+                        }}
+                        className="relative bg-white/90 backdrop-blur-md shadow-xl rounded-2xl py-2 pl-2 pr-9 border border-indigo-100/50 flex items-center shadow-indigo-100/50 max-w-max pointer-events-auto"
+                      >
+                        {/* Downward pointing arrow */}
+                        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white/90 backdrop-blur-md border-b border-r border-indigo-100/50 rotate-45" />
+                        
+                        {/* Q version pet */}
+                        <span className="text-3xl mr-2 drop-shadow-md leading-none">🥳</span>
+                        
+                        <span className="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500 whitespace-nowrap">
+                          快来点击，适用一下项目吧~
+                        </span>
+                        
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setShowWebAgentTip(false);
+                          }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-300 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-slate-50"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </motion.div>
+                    </div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             );
           })}
