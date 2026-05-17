@@ -5,4 +5,4 @@ compatibility_date = "2024-03-20"
 [[d1_databases]]
 binding = "DB"
 database_name = "DB"
-database_id = "default"
+database_id = "5bbdfb3b-aeba-4f74-b5b2-573a8b97881b"

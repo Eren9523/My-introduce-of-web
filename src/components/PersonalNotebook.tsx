@@ -200,7 +200,11 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
     try {
       const res = await fetch('/api/posts');
       const data = await res.json();
-      setPosts(data);
+      if (res.ok) {
+        setPosts(data);
+      } else {
+        console.error('Failed to fetch posts', data);
+      }
     } catch (e) {
       console.error('Failed to fetch posts');
     }
@@ -210,7 +214,11 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
     try {
       const res = await fetch('/api/todos');
       const data = await res.json();
-      setTodos(data);
+      if (res.ok) {
+        setTodos(data);
+      } else {
+        console.error('Failed to fetch todos', data);
+      }
     } catch (e) {
       console.error('Failed to fetch todos');
     }
