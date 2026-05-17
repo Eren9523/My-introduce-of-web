@@ -112,13 +112,13 @@ app.post("/api/posts", authenticateToken, (req, res) => {
   const { title, content } = req.body;
   if (!content) return res.status(400).json({ error: "Content is required" });
 
-  const id = crypto.randomUUID();
-  db.prepare(`INSERT INTO posts (id, author_id, title, content) VALUES (?, ?, ?, ?)`).run(id, req.user!.userId, title || null, content);
+  db.prepare(`INSERT INTO posts (author_id, title, content) VALUES (?, ?, ?)`).run(req.user!.userId, title || null, content);
   
+  const insertId = (db.prepare(`SELECT last_insert_rowid() as id`).get() as any).id;
   const newPost = db.prepare(`
     SELECT p.*, u.username, u.role as authorRole 
     FROM posts p JOIN users u ON p.author_id = u.id WHERE p.id = ?
-  `).get(id);
+  `).get(insertId);
   res.json(newPost);
 });
 
@@ -156,13 +156,13 @@ app.post("/api/log_comments", authenticateToken, (req, res) => {
   const { post_id, content } = req.body;
   if (!post_id || !content) return res.status(400).json({ error: "Missing fields" });
 
-  const id = crypto.randomUUID();
-  db.prepare(`INSERT INTO log_comments (id, post_id, author_id, content) VALUES (?, ?, ?, ?)`).run(id, post_id, req.user!.userId, content);
+  db.prepare(`INSERT INTO log_comments (post_id, author_id, content) VALUES (?, ?, ?)`).run(post_id, req.user!.userId, content);
 
+  const insertId = (db.prepare(`SELECT last_insert_rowid() as id`).get() as any).id;
   const newComment = db.prepare(`
     SELECT c.*, u.username, u.role as authorRole 
     FROM log_comments c JOIN users u ON c.author_id = u.id WHERE c.id = ?
-  `).get(id);
+  `).get(insertId);
   
   res.json(newComment);
 });
@@ -253,7 +253,7 @@ async function startServer() {
         db.prepare(`INSERT INTO users (id, username, password_hash, role) VALUES (?, ?, ?, ?)`)
           .run('admin-id', 'admin', hashed, 'admin');
         console.log('Created default admin: admin / admin123');
-      });
+      }).catch(err => console.error("Failed to create admin:", err));
     }
   });
 }

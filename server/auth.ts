@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-for-development';
 
@@ -15,17 +16,13 @@ export function verifyToken(token: string) {
 }
 
 export async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password + "salt"); // Simple salt
-  const hash = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(hash))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
+  const hash = crypto.createHash('sha256');
+  hash.update(password + "salt");
+  return hash.digest('hex');
 }
 
 export function sendEmailMock(email: string) {
   if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 'reserved') {
-    // Would do actual fetch to resend here
     console.log(`Sending real email via resend to: ${email}`);
   } else {
     console.log(`模拟发送邮件验证码到: ${email}`);

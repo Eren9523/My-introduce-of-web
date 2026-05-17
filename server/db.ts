@@ -10,13 +10,14 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
-    password_hash TEXT,
-    role TEXT NOT NULL DEFAULT 'user',
+    password_hash TEXT NOT NULL,
+    email TEXT,
+    role TEXT DEFAULT 'user',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
   CREATE TABLE IF NOT EXISTS posts (
-    id TEXT PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     author_id TEXT NOT NULL,
     title TEXT,
     content TEXT NOT NULL,
@@ -25,10 +26,11 @@ db.exec(`
   );
 
   CREATE TABLE IF NOT EXISTS log_comments (
-    id TEXT PRIMARY KEY,
-    post_id TEXT NOT NULL,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER NOT NULL,
     author_id TEXT NOT NULL,
     content TEXT NOT NULL,
+    parent_id INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
     FOREIGN KEY(author_id) REFERENCES users(id) ON DELETE CASCADE
