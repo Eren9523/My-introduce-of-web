@@ -28,7 +28,7 @@ export const onRequestPut = async (context: { request: Request; env: Env; params
 
     // Toggling completion status
     const currentTodo = await context.env.DB.prepare(
-      "SELECT is_completed, author_id FROM todos WHERE id = ?"
+      "SELECT completed, user_id FROM todos WHERE id = ?"
     ).bind(id).first();
 
     if (!currentTodo) return jsonResponse({ error: "Not found" }, 404);
@@ -38,23 +38,30 @@ export const onRequestPut = async (context: { request: Request; env: Env; params
     // Wait, let me look at frontend if it expects only author or what.
     // It's checked on frontend `canDelete`.
     
-    if (currentTodo.author_id !== author_id) {
+    if (currentTodo.user_id !== author_id) {
       // Need a way to check if admin?
       // Since it's simple, we'll allow it if JWT parses or let's just do it
     }
 
     const { success } = await context.env.DB.prepare(
-      "UPDATE todos SET is_completed = ? WHERE id = ?"
-    ).bind(currentTodo.is_completed ? 0 : 1, id).run();
+      "UPDATE todos SET completed = ? WHERE id = ?"
+    ).bind(currentTodo.completed ? 0 : 1, id).run();
 
     if (!success) {
       return jsonResponse({ error: "更新失败" }, 500);
     }
 
     const updatedTodo = await context.env.DB.prepare(`
-      SELECT t.*, u.username, u.role as authorRole 
+      SELECT 
+        t.id, 
+        t.user_id as author_id, 
+        t.title as content, 
+        t.completed as is_completed, 
+        t.created_at, 
+        u.username, 
+        u.role as authorRole 
       FROM todos t 
-      LEFT JOIN users u ON t.author_id = u.id 
+      LEFT JOIN users u ON t.user_id = u.id 
       WHERE t.id = ?
     `).bind(id).first();
 

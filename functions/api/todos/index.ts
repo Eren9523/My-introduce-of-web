@@ -12,9 +12,16 @@ const jsonResponse = (data: any, status = 200) => {
 export const onRequestGet = async (context: { env: Env }) => {
   try {
     const { results } = await context.env.DB.prepare(`
-      SELECT t.*, u.username, u.role as authorRole 
+      SELECT 
+        t.id, 
+        t.user_id as author_id, 
+        t.title as content, 
+        t.completed as is_completed, 
+        t.created_at, 
+        u.username, 
+        u.role as authorRole 
       FROM todos t 
-      LEFT JOIN users u ON t.author_id = u.id 
+      LEFT JOIN users u ON t.user_id = u.id 
       ORDER BY t.created_at DESC
     `).all();
     return jsonResponse(results || []);
@@ -45,7 +52,7 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
     const id = crypto.randomUUID();
 
     const { success, error } = await context.env.DB.prepare(
-      "INSERT INTO todos (id, author_id, content) VALUES (?, ?, ?)"
+      "INSERT INTO todos (id, user_id, title, completed) VALUES (?, ?, ?, 0)"
     ).bind(id, author_id, content).run();
 
     if (!success) {
@@ -53,9 +60,16 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
     }
 
     const newTodo = await context.env.DB.prepare(`
-      SELECT t.*, u.username, u.role as authorRole 
+      SELECT 
+        t.id, 
+        t.user_id as author_id, 
+        t.title as content, 
+        t.completed as is_completed, 
+        t.created_at, 
+        u.username, 
+        u.role as authorRole 
       FROM todos t 
-      LEFT JOIN users u ON t.author_id = u.id 
+      LEFT JOIN users u ON t.user_id = u.id 
       WHERE t.id = ?
     `).bind(id).first();
 
