@@ -348,15 +348,18 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
         },
         body: JSON.stringify({ post_id: postId, content: newCommentContent })
       });
-      const newComment = await res.json();
+      const data = await res.json();
       if (res.ok) {
         setPosts(posts.map(p => {
           if (p.id === postId) {
-            return { ...p, comments: [...(p.comments || []), newComment] };
+            return { ...p, comments: [...(p.comments || []), data] };
           }
           return p;
         }));
         setNewCommentContent('');
+      } else if (res.status === 401 || res.status === 403) {
+        handleLogout();
+        setIsAuthModalOpen(true);
       }
     } catch (e) {
       console.error(e);
@@ -394,10 +397,13 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
         },
         body: JSON.stringify({ content: newTodoContent })
       });
-      const newTodo = await res.json();
+      const data = await res.json();
       if (res.ok) {
-        setTodos([newTodo, ...todos]);
+        setTodos([data, ...todos]);
         setNewTodoContent('');
+      } else if (res.status === 401 || res.status === 403) {
+        handleLogout();
+        setIsAuthModalOpen(true);
       }
     } catch (e) {
       console.error(e);

@@ -2,12 +2,19 @@ export interface Env {
   DB: any;
 }
 
+const jsonResponse = (data: any, status = 200) => {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json' }
+  });
+};
+
 export const onRequestPost = async (context: { request: Request; env: Env }) => {
   try {
     const { username, password } = (await context.request.json()) as any;
 
     if (!username || !password) {
-      return Response.json({ error: "请输入用户名和密码" }, { status: 400 });
+      return jsonResponse({ error: "请输入用户名和密码" }, 400);
     }
 
     // Hash the password for checking
@@ -23,12 +30,12 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
     ).bind(username, passwordHash).first();
 
     if (!user) {
-      return Response.json({ error: "用户名或密码错误" }, { status: 401 });
+      return jsonResponse({ error: "用户名或密码错误" }, 401);
     }
 
     // In a real CF workers setup, we can sign a JWT here. 
     // For simplicity, we just return the user object (minus password).
-    return Response.json({
+    return jsonResponse({
       message: "登录成功",
       token: "cf-token-" + user.id, // Mock token for CF since jsonwebtoken isn't web native
       user: {
@@ -39,6 +46,6 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
     });
 
   } catch (err) {
-    return Response.json({ error: String(err) }, { status: 500 });
+    return jsonResponse({ error: String(err) }, 500);
   }
 };

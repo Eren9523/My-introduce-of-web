@@ -2,12 +2,19 @@ export interface Env {
   DB: any;
 }
 
+const jsonResponse = (data: any, status = 200) => {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json' }
+  });
+};
+
 export const onRequestPost = async (context: { request: Request; env: Env }) => {
   try {
     const { username, password } = (await context.request.json()) as any;
 
     if (!username || !password) {
-      return Response.json({ error: "请输入用户名和密码" }, { status: 400 });
+      return jsonResponse({ error: "请输入用户名和密码" }, 400);
     }
 
     // Hash the password using Web Crypto
@@ -26,7 +33,7 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
     ).bind(username).first();
 
     if (existing) {
-      return Response.json({ error: "该用户已注册" }, { status: 400 });
+      return jsonResponse({ error: "该用户已注册" }, 400);
     }
 
     // Insert user
@@ -35,12 +42,20 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
     ).bind(id, username, passwordHash).run();
 
     if (!success) {
-      return Response.json({ error: "数据库写入失败", details: error }, { status: 500 });
+      return jsonResponse({ error: "数据库写入失败", details: error }, 500);
     }
 
     // Return success
-    return Response.json({ message: "注册成功", userId: id });
+    return jsonResponse({ 
+      message: "注册成功", 
+      token: "cf-token-" + id,
+      user: {
+        userId: id,
+        username: username,
+        role: "user"
+      }
+    });
   } catch (err) {
-    return Response.json({ error: String(err) }, { status: 500 });
+    return jsonResponse({ error: String(err) }, 500);
   }
 };

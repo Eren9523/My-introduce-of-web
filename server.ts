@@ -28,6 +28,17 @@ const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
   const payload = verifyToken(token);
   if (!payload) return res.status(403).json({ error: "Forbidden" });
 
+  // verify if user actually exists in the db (handles case where db was wiped but client has token)
+  try {
+    const userExists = db.prepare(`SELECT id FROM users WHERE id = ?`).get(payload.userId);
+    if (!userExists) {
+       return res.status(401).json({ error: "User no longer exists. Please log in again." });
+    }
+  } catch (err) {
+    console.error("Auth DB check error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+
   req.user = payload;
   next();
 };
@@ -109,123 +120,177 @@ app.get("/api/posts", (req, res) => {
 });
 
 app.post("/api/posts", authenticateToken, (req, res) => {
-  const { title, content } = req.body;
-  if (!content) return res.status(400).json({ error: "Content is required" });
+  try {
+    const { title, content } = req.body;
+    if (!content) return res.status(400).json({ error: "Content is required" });
 
-  db.prepare(`INSERT INTO posts (author_id, title, content) VALUES (?, ?, ?)`).run(req.user!.userId, title || null, content);
-  
-  const insertId = (db.prepare(`SELECT last_insert_rowid() as id`).get() as any).id;
-  const newPost = db.prepare(`
-    SELECT p.*, u.username, u.role as authorRole 
-    FROM posts p JOIN users u ON p.author_id = u.id WHERE p.id = ?
-  `).get(insertId);
-  res.json(newPost);
+    db.prepare(`INSERT INTO posts (author_id, title, content) VALUES (?, ?, ?)`).run(req.user!.userId, title || null, content);
+    
+    const insertId = (db.prepare(`SELECT last_insert_rowid() as id`).get() as any).id;
+    const newPost = db.prepare(`
+      SELECT p.*, u.username, u.role as authorRole 
+      FROM posts p JOIN users u ON p.author_id = u.id WHERE p.id = ?
+    `).get(insertId);
+    res.json(newPost);
+  } catch (error: any) {
+    console.error("Posts error:", error);
+    if (error.message && error.message.includes("FOREIGN KEY constraint failed")) {
+      return res.status(401).json({ error: "User not found or invalid foreign key" });
+    }
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 app.get("/api/posts/:id", (req, res) => {
-  const post = db.prepare(`
-    SELECT p.*, u.username, u.role as authorRole 
-    FROM posts p JOIN users u ON p.author_id = u.id WHERE p.id = ?
-  `).get(req.params.id) as any;
-  
-  if (!post) return res.status(404).json({ error: "Not found" });
-  
-  const comments = db.prepare(`
-    SELECT c.*, u.username, u.role as authorRole 
-    FROM log_comments c JOIN users u ON c.author_id = u.id 
-    WHERE c.post_id = ? ORDER BY c.created_at ASC
-  `).all(req.params.id);
+  try {
+    const post = db.prepare(`
+      SELECT p.*, u.username, u.role as authorRole 
+      FROM posts p JOIN users u ON p.author_id = u.id WHERE p.id = ?
+    `).get(req.params.id) as any;
+    
+    if (!post) return res.status(404).json({ error: "Not found" });
+    
+    const comments = db.prepare(`
+      SELECT c.*, u.username, u.role as authorRole 
+      FROM log_comments c JOIN users u ON c.author_id = u.id 
+      WHERE c.post_id = ? ORDER BY c.created_at ASC
+    `).all(req.params.id);
 
-  res.json({ ...post, comments });
+    res.json({ ...post, comments });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 app.delete("/api/posts/:id", authenticateToken, (req, res) => {
-  const post = db.prepare(`SELECT author_id FROM posts WHERE id = ?`).get(req.params.id) as any;
-  if (!post) return res.status(404).json({ error: "Not found" });
+  try {
+    const post = db.prepare(`SELECT author_id FROM posts WHERE id = ?`).get(req.params.id) as any;
+    if (!post) return res.status(404).json({ error: "Not found" });
 
-  if (req.user!.role !== 'admin' && req.user!.userId !== post.author_id) {
-    return res.status(403).json({ error: "Forbidden" });
+    if (req.user!.role !== 'admin' && req.user!.userId !== post.author_id) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    db.prepare(`DELETE FROM posts WHERE id = ?`).run(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
   }
-
-  db.prepare(`DELETE FROM posts WHERE id = ?`).run(req.params.id);
-  res.json({ success: true });
 });
 
 // Comments routes
 app.post("/api/log_comments", authenticateToken, (req, res) => {
-  const { post_id, content } = req.body;
-  if (!post_id || !content) return res.status(400).json({ error: "Missing fields" });
+  try {
+    const { post_id, content } = req.body;
+    if (!post_id || !content) return res.status(400).json({ error: "Missing fields" });
 
-  db.prepare(`INSERT INTO log_comments (post_id, author_id, content) VALUES (?, ?, ?)`).run(post_id, req.user!.userId, content);
+    db.prepare(`INSERT INTO log_comments (post_id, author_id, content) VALUES (?, ?, ?)`).run(post_id, req.user!.userId, content);
 
-  const insertId = (db.prepare(`SELECT last_insert_rowid() as id`).get() as any).id;
-  const newComment = db.prepare(`
-    SELECT c.*, u.username, u.role as authorRole 
-    FROM log_comments c JOIN users u ON c.author_id = u.id WHERE c.id = ?
-  `).get(insertId);
-  
-  res.json(newComment);
+    const insertId = (db.prepare(`SELECT last_insert_rowid() as id`).get() as any).id;
+    const newComment = db.prepare(`
+      SELECT c.*, u.username, u.role as authorRole 
+      FROM log_comments c JOIN users u ON c.author_id = u.id WHERE c.id = ?
+    `).get(insertId);
+    
+    res.json(newComment);
+  } catch (error: any) {
+    console.error("Comments error:", error);
+    if (error.message && error.message.includes("FOREIGN KEY constraint failed")) {
+      return res.status(401).json({ error: "User or Post not found" });
+    }
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 app.delete("/api/log_comments/:id", authenticateToken, (req, res) => {
-  const comment = db.prepare(`SELECT author_id FROM log_comments WHERE id = ?`).get(req.params.id) as any;
-  if (!comment) return res.status(404).json({ error: "Not found" });
+  try {
+    const comment = db.prepare(`SELECT author_id FROM log_comments WHERE id = ?`).get(req.params.id) as any;
+    if (!comment) return res.status(404).json({ error: "Not found" });
 
-  if (req.user!.role !== 'admin' && req.user!.userId !== comment.author_id) {
-    return res.status(403).json({ error: "Forbidden" });
+    if (req.user!.role !== 'admin' && req.user!.userId !== comment.author_id) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    db.prepare(`DELETE FROM log_comments WHERE id = ?`).run(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
   }
-
-  db.prepare(`DELETE FROM log_comments WHERE id = ?`).run(req.params.id);
-  res.json({ success: true });
 });
 
 // Todos routes
 app.get("/api/todos", (req, res) => {
-  const todos = db.prepare(`
-    SELECT t.*, u.username, u.role as authorRole 
-    FROM todos t JOIN users u ON t.author_id = u.id 
-    ORDER BY t.created_at DESC
-  `).all();
-  res.json(todos);
+  try {
+    const todos = db.prepare(`
+      SELECT t.*, u.username, u.role as authorRole 
+      FROM todos t JOIN users u ON t.author_id = u.id 
+      ORDER BY t.created_at DESC
+    `).all();
+    res.json(todos);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 app.post("/api/todos", authenticateToken, (req, res) => {
-  const { content } = req.body;
-  if (!content) return res.status(400).json({ error: "Content is required" });
+  try {
+    const { content } = req.body;
+    if (!content) return res.status(400).json({ error: "Content is required" });
 
-  const id = crypto.randomUUID();
-  db.prepare(`INSERT INTO todos (id, author_id, content) VALUES (?, ?, ?)`).run(id, req.user!.userId, content);
-  
-  const newTodo = db.prepare(`
-    SELECT t.*, u.username, u.role as authorRole 
-    FROM todos t JOIN users u ON t.author_id = u.id WHERE t.id = ?
-  `).get(id);
-  res.json(newTodo);
+    const id = crypto.randomUUID();
+    db.prepare(`INSERT INTO todos (id, author_id, content) VALUES (?, ?, ?)`).run(id, req.user!.userId, content);
+    
+    const newTodo = db.prepare(`
+      SELECT t.*, u.username, u.role as authorRole 
+      FROM todos t JOIN users u ON t.author_id = u.id WHERE t.id = ?
+    `).get(id);
+    res.json(newTodo);
+  } catch (error: any) {
+    console.error("Todos error:", error);
+    if (error.message && error.message.includes("FOREIGN KEY constraint failed")) {
+      return res.status(401).json({ error: "User not found" });
+    }
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 app.put("/api/todos/:id/toggle", authenticateToken, (req, res) => {
-  const todo = db.prepare(`SELECT author_id, is_completed FROM todos WHERE id = ?`).get(req.params.id) as any;
-  if (!todo) return res.status(404).json({ error: "Not found" });
+  try {
+    const todo = db.prepare(`SELECT author_id, is_completed FROM todos WHERE id = ?`).get(req.params.id) as any;
+    if (!todo) return res.status(404).json({ error: "Not found" });
 
-  if (req.user!.role !== 'admin' && req.user!.userId !== todo.author_id) {
-    return res.status(403).json({ error: "Forbidden" });
+    if (req.user!.role !== 'admin' && req.user!.userId !== todo.author_id) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const newState = todo.is_completed ? 0 : 1;
+    db.prepare(`UPDATE todos SET is_completed = ? WHERE id = ?`).run(newState, req.params.id);
+    res.json({ success: true, is_completed: newState });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
   }
-
-  const newState = todo.is_completed ? 0 : 1;
-  db.prepare(`UPDATE todos SET is_completed = ? WHERE id = ?`).run(newState, req.params.id);
-  res.json({ success: true, is_completed: newState });
 });
 
 app.delete("/api/todos/:id", authenticateToken, (req, res) => {
-  const todo = db.prepare(`SELECT author_id FROM todos WHERE id = ?`).get(req.params.id) as any;
-  if (!todo) return res.status(404).json({ error: "Not found" });
+  try {
+    const todo = db.prepare(`SELECT author_id FROM todos WHERE id = ?`).get(req.params.id) as any;
+    if (!todo) return res.status(404).json({ error: "Not found" });
 
-  if (req.user!.role !== 'admin' && req.user!.userId !== todo.author_id) {
-    return res.status(403).json({ error: "Forbidden" });
+    if (req.user!.role !== 'admin' && req.user!.userId !== todo.author_id) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    db.prepare(`DELETE FROM todos WHERE id = ?`).run(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
   }
-
-  db.prepare(`DELETE FROM todos WHERE id = ?`).run(req.params.id);
-  res.json({ success: true });
 });
 
 async function startServer() {

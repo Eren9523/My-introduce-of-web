@@ -2,6 +2,13 @@ export interface Env {
   DB: any;
 }
 
+const jsonResponse = (data: any, status = 200) => {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json' }
+  });
+};
+
 export const onRequestPost = async (context: { request: Request; env: Env }) => {
   try {
     const id = crypto.randomUUID();
@@ -13,11 +20,12 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
     ).bind(id, guestUsername, "guest_hash").run();
 
     if (!success) {
-      return Response.json({ error: "Create guest failed", details: error }, { status: 500 });
+      return jsonResponse({ error: "Create guest failed", details: error }, 500);
     }
 
-    return Response.json({
+    return jsonResponse({
       message: "访客登录成功",
+      token: "cf-token-" + id,
       user: {
         userId: id,
         username: guestUsername,
@@ -26,6 +34,6 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
     });
 
   } catch (err) {
-    return Response.json({ error: String(err) }, { status: 500 });
+    return jsonResponse({ error: String(err) }, 500);
   }
 };
