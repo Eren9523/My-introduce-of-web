@@ -28,38 +28,40 @@ const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
   const payload = verifyToken(token);
   if (!payload) return res.status(403).json({ error: "Forbidden" });
 
-  // verify if user actually exists in the db (handles case where db was wiped but client has token)
+  // 验证用户是否存在于数据库（处理数据库被重置但客户端仍保留旧token的情况），防止外键约束报错
+  // Verify if user actually exists in the db (handles case where db was wiped but client has token)
   try {
     const userExists = db.prepare(`SELECT id FROM users WHERE id = ?`).get(payload.userId);
     if (!userExists) {
-       return res.status(401).json({ error: "User no longer exists. Please log in again." });
+       return res.status(401).json({ error: "用户不存在或已失效，请重新登录" });
     }
   } catch (err) {
     console.error("Auth DB check error:", err);
-    return res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ error: "服务器内部错误" });
   }
 
   req.user = payload;
   next();
 };
 
-// Auth routes
+// ======== 认证 (Auth) 路由 ======== //
 app.post("/api/auth/register", async (req, res) => {
   try {
     const { username, password } = req.body;
-    if (!username || !password) return res.status(400).json({ error: "Missing fields" });
+    if (!username || !password) return res.status(400).json({ error: "缺少必要的字段" });
     if (/[^a-zA-Z0-9_\u4e00-\u9fa5]/.test(username)) {
-      return res.status(400).json({ error: "Username contains invalid characters" });
+      return res.status(400).json({ error: "用户名包含无效字符，仅支持中英文字母、数字和下划线" });
     }
 
     const hashed = await hashPassword(password);
     const userId = crypto.randomUUID();
 
     try {
+      // 插入新用户，如用户名重复会触发主键冲突报错
       db.prepare(`INSERT INTO users (id, username, password_hash, role) VALUES (?, ?, ?, ?)`).run(userId, username, hashed, 'user');
     } catch (err: any) {
       if (err.message.includes('UNIQUE constraint failed')) {
-        return res.status(400).json({ error: "该用户已注册 (Username already exists)" });
+        return res.status(400).json({ error: "该用户名已被注册" });
       }
       throw err;
     }
@@ -68,7 +70,7 @@ app.post("/api/auth/register", async (req, res) => {
     res.json({ token, user: { userId, username, role: 'user' } });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "注册失败，服务器内部错误" });
   }
 });
 
@@ -76,10 +78,10 @@ app.post("/api/auth/login", async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = db.prepare(`SELECT * FROM users WHERE username = ?`).get(username) as any;
-    if (!user) return res.status(400).json({ error: "Invalid credentials" });
+    if (!user) return res.status(400).json({ error: "用户名或密码错误" });
 
     const hashed = await hashPassword(password);
-    if (hashed !== user.password_hash) return res.status(400).json({ error: "Invalid credentials" });
+    if (hashed !== user.password_hash) return res.status(400).json({ error: "用户名或密码错误" });
 
     const token = signToken(user.id, user.username, user.role);
     res.json({ token, user: { userId: user.id, username: user.username, role: user.role } });
@@ -221,9 +223,10 @@ app.delete("/api/log_comments/:id", authenticateToken, (req, res) => {
   }
 });
 
-// Todos routes
+// ======== 侧边栏便签 (Todos) 路由 ======== //
 app.get("/api/todos", (req, res) => {
   try {
+    // 联合查询出发布者的用户名与角色，按照创建时间倒序排列
     const todos = db.prepare(`
       SELECT t.*, u.username, u.role as authorRole 
       FROM todos t JOIN users u ON t.author_id = u.id 
@@ -232,7 +235,7 @@ app.get("/api/todos", (req, res) => {
     res.json(todos);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "获取便签失败，服务器内部错误" });
   }
 });
 

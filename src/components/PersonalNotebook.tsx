@@ -190,8 +190,13 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
   const fetchPosts = async () => {
     try {
       const res = await fetch('/api/posts');
-      const data = await res.json();
-      setPosts(data);
+      const text = await res.text();
+      try {
+        const data = JSON.parse(text);
+        if (res.ok) setPosts(data);
+      } catch (err) {
+        console.error('API Error (HTML returned instead of JSON):', text);
+      }
     } catch (e) {
       console.error('Failed to fetch posts');
     }
@@ -200,8 +205,13 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
   const fetchTodos = async () => {
     try {
       const res = await fetch('/api/todos');
-      const data = await res.json();
-      setTodos(data);
+      const text = await res.text();
+      try {
+        const data = JSON.parse(text);
+        if (res.ok) setTodos(data);
+      } catch (err) {
+        console.error('API Error (HTML returned instead of JSON):', text);
+      }
     } catch (e) {
       console.error('Failed to fetch todos');
     }
@@ -226,8 +236,8 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      const data = await res.json().catch(() => ({ error: "网络响应异常，无法解析" }));
+      if (!res.ok) throw new Error(data.error || "请求失败");
       
       localStorage.setItem('log_token', data.token);
       setUser(data.user);
@@ -248,8 +258,8 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      const data = await res.json().catch(() => ({ error: "网络响应异常，无法解析" }));
+      if (!res.ok) throw new Error(data.error || "请求失败");
 
       localStorage.setItem('log_token', data.token);
       setUser(data.user);
@@ -264,7 +274,7 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
   const handleGuestLogin = async () => {
     try {
       const res = await fetch('/api/auth/guest', { method: 'POST' });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({ error: "网络响应异常" }));
       if (!res.ok) throw new Error(data.error);
 
       localStorage.setItem('log_token', data.token);
