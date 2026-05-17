@@ -6,7 +6,7 @@ const socialLinks = [
   {
     name: '小红书',
     icon: <Camera className="w-6 h-6" />,
-    url: 'https://xiaohongshu.com/user/profile/', // Replace with actual URL
+    url: 'https://www.xiaohongshu.com/user/profile/62fc82a20000000012002905?m_source=mengfanwetab',
     color: 'from-red-500 to-rose-600',
     hoverColor: 'group-hover:shadow-red-500/50',
     desc: '随手记录，分享生活碎片与思考'
@@ -14,7 +14,7 @@ const socialLinks = [
   {
     name: 'Bilibili',
     icon: <Film className="w-6 h-6" />,
-    url: 'https://space.bilibili.com/', // Replace with actual URL
+    url: 'https://space.bilibili.com/412339816',
     color: 'from-blue-400 to-cyan-500',
     hoverColor: 'group-hover:shadow-cyan-500/50',
     desc: '长视频分享，深度解析与日常vlog'
@@ -22,7 +22,7 @@ const socialLinks = [
   {
     name: '抖音',
     icon: <Music className="w-6 h-6" />,
-    url: 'https://douyin.com/', // Replace with actual URL
+    url: 'https://v.douyin.com/bBoeliW1LmM/',
     color: 'from-slate-800 to-black',
     hoverColor: 'group-hover:shadow-purple-500/50',
     desc: '捕捉瞬间的精彩，用镜头表达态度'

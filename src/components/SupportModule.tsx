@@ -25,7 +25,7 @@ export const SupportModule = () => {
         
         <motion.a
           ref={containerRef}
-          href="https://www.ifdian.net/a/eren9523"
+          href="https://www.ifdian.net/a/eren9523/plan"
           target="_blank"
           rel="noopener noreferrer"
           onMouseMove={handleMouseMove}
