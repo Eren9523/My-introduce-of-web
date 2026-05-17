@@ -47,7 +47,7 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
     // 尝试插入数据，如果由于外键约束（作者不存在）等原因会导致失败
     const { success, error, meta } = await context.env.DB.prepare(
       "INSERT INTO posts (author_id, title, content) VALUES (?, ?, ?)"
-    ).bind(author_id, title || null, content).run();
+    ).bind(author_id, title || '', content).run();
 
     if (!success) {
       return jsonResponse({ error: "数据库写入失败，请检查用户状态", details: error }, 500);

@@ -17,7 +17,7 @@ export const onRequestGet = async (context: { request: Request; env: Env }) => {
     let query = `
       SELECT c.*, u.username, u.role as authorRole 
       FROM log_comments c 
-      JOIN users u ON c.author_id = u.id
+      LEFT JOIN users u ON c.author_id = u.id
     `;
     let params: any[] = [];
 
@@ -68,7 +68,7 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
     const newComment = await context.env.DB.prepare(`
       SELECT c.*, u.username, u.role as authorRole 
       FROM log_comments c 
-      JOIN users u ON c.author_id = u.id 
+      LEFT JOIN users u ON c.author_id = u.id 
       WHERE c.id = ?
     `).bind(insertId).first();
 

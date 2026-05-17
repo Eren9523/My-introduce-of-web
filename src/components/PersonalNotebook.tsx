@@ -561,6 +561,8 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
             <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm relative overflow-hidden group focus-within:border-indigo-300 focus-within:shadow-md transition-all">
               <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500 rounded-l-2xl opacity-50 group-focus-within:opacity-100 transition-opacity" />
               <textarea 
+                id="new-post-content"
+                name="newPostContent"
                 onClick={() => requireAuth(() => {})}
                 value={newPostContent}
                 onChange={(e) => setNewPostContent(e.target.value)}
@@ -680,6 +682,8 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
                             </div>
                             <div className="flex-1 flex gap-2">
                               <input
+                                id="new-comment"
+                                name="new-comment"
                                 type="text"
                                 value={newCommentContent}
                                 onChange={(e) => setNewCommentContent(e.target.value)}
@@ -737,6 +741,8 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
               {/* Add Todo UI */}
               <div className="mb-6 flex gap-2">
                 <input
+                  id="new-todo"
+                  name="new-todo"
                   type="text"
                   value={newTodoContent}
                   onChange={(e) => setNewTodoContent(e.target.value)}
