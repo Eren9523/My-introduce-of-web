@@ -59,24 +59,24 @@ const NotebookHeader = () => {
       <motion.div 
         className="absolute w-[280px] h-[280px] md:w-[340px] md:h-[340px] rounded-full bg-slate-900/50 border border-purple-500/20 shadow-[0_0_30px_rgba(139,92,246,0.1),inset_0_0_20px_rgba(139,92,246,0.1)] z-10 flex items-center justify-center backdrop-blur-sm"
         style={{ 
-          x: useTransform(smoothXLarge, x => -10 * Math.tanh(x / 250)), 
-          y: useTransform(smoothYLarge, y => -10 * Math.tanh(y / 250)) 
+          x: useTransform(smoothXLarge, x => -25 * Math.tanh(x / 300)), 
+          y: useTransform(smoothYLarge, y => -25 * Math.tanh(y / 300)) 
         }}
       >
         {/* Layer 2 (Middle Ring - Medium) */}
         <motion.div 
           className="w-[200px] h-[200px] md:w-[240px] md:h-[240px] rounded-full bg-slate-900 border border-cyan-500/30 shadow-[0_0_40px_rgba(6,182,212,0.15),inset_0_0_15px_rgba(6,182,212,0.2)] z-20 flex items-center justify-center"
           style={{ 
-            x: useTransform(smoothXMedium, x => -15 * Math.tanh(x / 250)), 
-            y: useTransform(smoothYMedium, y => -15 * Math.tanh(y / 250)) 
+            x: useTransform(smoothXMedium, x => -30 * Math.tanh(x / 300)), 
+            y: useTransform(smoothYMedium, y => -30 * Math.tanh(y / 300)) 
           }}
         >
           {/* Layer 3 (Inner Circle - Small & Agile) */}
           <motion.div
             className="w-[120px] h-[120px] md:w-[150px] md:h-[150px] rounded-full bg-slate-950 shadow-[0_0_50px_rgba(236,72,153,0.3),inset_0_0_20px_rgba(236,72,153,0.2)] z-30 flex flex-col items-center justify-center relative border border-pink-500/40"
             style={{ 
-              x: useTransform(smoothXSmall, x => -25 * Math.tanh(x / 250)), 
-              y: useTransform(smoothYSmall, y => -25 * Math.tanh(y / 250)) 
+              x: useTransform(smoothXSmall, x => -25 * Math.tanh(x / 300)), 
+              y: useTransform(smoothYSmall, y => -25 * Math.tanh(y / 300)) 
             }}
           >
              <h2 className="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-br from-pink-400 via-purple-400 to-cyan-400 z-10 tracking-tight drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">脑内空间</h2>
@@ -89,22 +89,22 @@ const NotebookHeader = () => {
       <motion.div 
         className="absolute w-12 h-4 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 shadow-[0_0_15px_rgba(236,72,153,0.5)] z-20"
         style={{ 
-          x: useTransform(smoothXMedium, x => -20 * Math.tanh(x / 300) + 120), 
-          y: useTransform(smoothYMedium, y => -20 * Math.tanh(y / 300) - 80) 
+          x: useTransform(smoothXMedium, x => -40 * Math.tanh(x / 400) + 120), 
+          y: useTransform(smoothYMedium, y => -40 * Math.tanh(y / 400) - 80) 
         }}
       />
       <motion.div 
         className="absolute w-8 h-3 rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 shadow-[0_0_10px_rgba(6,182,212,0.5)] z-20"
         style={{ 
-          x: useTransform(smoothXSmall, x => -30 * Math.tanh(x / 300) - 140), 
-          y: useTransform(smoothYSmall, y => -30 * Math.tanh(y / 300) - 50) 
+          x: useTransform(smoothXSmall, x => -50 * Math.tanh(x / 400) - 140), 
+          y: useTransform(smoothYSmall, y => -50 * Math.tanh(y / 400) - 50) 
         }}
       />
       <motion.div 
         className="absolute w-16 h-5 rounded-full bg-gradient-to-r from-yellow-400 via-orange-500 to-pink-500 shadow-[0_0_20px_rgba(245,158,11,0.5)] z-10 opacity-80"
         style={{ 
-          x: useTransform(smoothXLarge, x => -10 * Math.tanh(x / 300) + 160), 
-          y: useTransform(smoothYLarge, y => -10 * Math.tanh(y / 300) + 120) 
+          x: useTransform(smoothXLarge, x => -30 * Math.tanh(x / 400) + 160), 
+          y: useTransform(smoothYLarge, y => -30 * Math.tanh(y / 400) + 120) 
         }}
       />
     </div>
@@ -170,15 +170,6 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
   // Todo State
   const [newTodoContent, setNewTodoContent] = useState('');
 
-  const formatLocalTime = (utcString: string) => {
-    if (!utcString) return '';
-    try {
-      return new Date(utcString.replace(' ', 'T') + 'Z').toLocaleString();
-    } catch {
-      return utcString;
-    }
-  };
-
   useEffect(() => {
     // Check local storage for token on mount
     const storedToken = localStorage.getItem('log_token');
@@ -200,11 +191,7 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
     try {
       const res = await fetch('/api/posts');
       const data = await res.json();
-      if (res.ok) {
-        setPosts(data);
-      } else {
-        console.error('Failed to fetch posts', data);
-      }
+      setPosts(data);
     } catch (e) {
       console.error('Failed to fetch posts');
     }
@@ -214,11 +201,7 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
     try {
       const res = await fetch('/api/todos');
       const data = await res.json();
-      if (res.ok) {
-        setTodos(data);
-      } else {
-        console.error('Failed to fetch todos', data);
-      }
+      setTodos(data);
     } catch (e) {
       console.error('Failed to fetch todos');
     }
@@ -315,7 +298,6 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
         setNewPostContent('');
       } else if (res.status === 401 || res.status === 403) {
         handleLogout();
-        setAuthError(data.error || '需要授权');
         setIsAuthModalOpen(true);
       }
     } catch (e) {
@@ -331,9 +313,6 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
       });
       if (res.ok) {
         setPosts(posts.filter(p => p.id !== id));
-      } else if (res.status === 401 || res.status === 403) {
-        const errData = await res.json().catch(() => ({}));
-        alert(`删除失败: ${errData.error || '权限不足'}`);
       }
     } catch (e) {
       console.error(e);
@@ -369,19 +348,15 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
         },
         body: JSON.stringify({ post_id: postId, content: newCommentContent })
       });
-      const data = await res.json();
+      const newComment = await res.json();
       if (res.ok) {
         setPosts(posts.map(p => {
           if (p.id === postId) {
-            return { ...p, comments: [...(p.comments || []), data] };
+            return { ...p, comments: [...(p.comments || []), newComment] };
           }
           return p;
         }));
         setNewCommentContent('');
-      } else if (res.status === 401 || res.status === 403) {
-        handleLogout();
-        setAuthError(data.error || '需要授权');
-        setIsAuthModalOpen(true);
       }
     } catch (e) {
       console.error(e);
@@ -419,14 +394,10 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
         },
         body: JSON.stringify({ content: newTodoContent })
       });
-      const data = await res.json();
+      const newTodo = await res.json();
       if (res.ok) {
-        setTodos([data, ...todos]);
+        setTodos([newTodo, ...todos]);
         setNewTodoContent('');
-      } else if (res.status === 401 || res.status === 403) {
-        handleLogout();
-        setAuthError(data.error || '需要授权');
-        setIsAuthModalOpen(true);
       }
     } catch (e) {
       console.error(e);
@@ -442,10 +413,6 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
       const data = await res.json();
       if (res.ok) {
         setTodos(todos.map(t => t.id === id ? { ...t, is_completed: data.is_completed } : t));
-      } else if (res.status === 401 || res.status === 403) {
-        handleLogout();
-        setAuthError(data.error || '需要授权');
-        setIsAuthModalOpen(true);
       }
     } catch (e) {
       console.error(e);
@@ -460,9 +427,6 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
       });
       if (res.ok) {
         setTodos(todos.filter(t => t.id !== id));
-      } else if (res.status === 401 || res.status === 403) {
-        const errData = await res.json().catch(() => ({}));
-        alert(`删除失败: ${errData.error || '权限不足'}`);
       }
     } catch (e) {
       console.error(e);
@@ -569,7 +533,7 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
                           </span>
                         </div>
                         <div className="text-xs text-slate-500 mt-0.5">
-                          {formatLocalTime(post.created_at)}
+                          {new Date(post.created_at).toLocaleString()}
                         </div>
                       </div>
                     </div>
@@ -620,7 +584,7 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
                                 <div className="flex items-center justify-between mb-1">
                                   <div className="flex items-center gap-2">
                                     <span className="text-sm font-bold text-slate-700">{comment.username}</span>
-                                    <span className="text-[11px] text-slate-400">{formatLocalTime(comment.created_at)}</span>
+                                    <span className="text-[11px] text-slate-400">{new Date(comment.created_at).toLocaleTimeString()}</span>
                                   </div>
                                   {canDelete(comment.author_id) && (
                                     <button 
@@ -747,7 +711,7 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
                         </div>
                         <div className="flex items-center gap-1 text-[10px] text-amber-500/70">
                           <Clock className="w-3 h-3" />
-                          {formatLocalTime(todo.created_at)}
+                          {new Date(todo.created_at).toLocaleDateString()} {new Date(todo.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                         </div>
                       </div>
                     </div>
