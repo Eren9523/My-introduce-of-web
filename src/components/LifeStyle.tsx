@@ -13,7 +13,8 @@ const socialLinks = [
     desc: '随手记录，分享生活碎片与思考',
     idText: '我的小红书：2939341558',
     platformId: '2939341558',
-    hasTooltip: true
+    hasTooltip: true,
+    tooltipText: '由于平台设置无法跳转\n个人ID已粘贴至剪切板'
   },
   {
     name: 'Bilibili',
@@ -22,8 +23,9 @@ const socialLinks = [
     color: 'from-[#00A1D6] to-[#00A1D6]',
     hoverColor: 'group-hover:shadow-cyan-500/50',
     desc: '长视频分享，深度解析与日常vlog',
-    idText: '点击后直接跳转到我的主页，探索更多硬核内容',
-    hasTooltip: false
+    idText: '点击直达主页探索更多硬核内容',
+    hasTooltip: true,
+    tooltipText: '此平台拥有专属用户URL\n点击卡片即可直达主页'
   },
   {
     name: '抖音',
@@ -34,7 +36,8 @@ const socialLinks = [
     desc: '捕捉瞬间的精彩，用镜头表达态度',
     idText: '我的抖音：123081390',
     platformId: '123081390',
-    hasTooltip: true
+    hasTooltip: true,
+    tooltipText: '由于平台设置无法跳转\n个人ID已粘贴至剪切板'
   }
 ];
 
@@ -126,10 +129,9 @@ function SocialCard({ link, i }: { link: any, i: number }) {
             transition={{ duration: 0.2 }}
             className="absolute -top-12 left-1/2 -translate-x-1/2 z-50 pointer-events-none w-max"
           >
-            <div className="bg-slate-800/95 backdrop-blur-md text-white text-xs px-4 py-2.5 rounded-xl shadow-xl border border-white/10 text-center leading-relaxed">
-              由于平台设置无法直接跳转个人主页
-              <br />个人ID已粘贴至剪切板
-              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-800/95 rotate-45 border-b border-r border-white/10" />
+            <div className="bg-slate-800 text-white text-xs px-4 py-2.5 rounded-xl shadow-xl text-center leading-relaxed whitespace-pre-line relative z-10">
+              {link.tooltipText}
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-800 rotate-45 rounded-[2px]" />
             </div>
           </motion.div>
         )}
