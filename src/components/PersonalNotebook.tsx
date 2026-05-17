@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'motion/react';
 import { Brain, Lock, User, UserPlus, LogOut, Code, Send, Trash2, MessageSquare, X, CheckCircle2, Circle, Clock, StickyNote } from 'lucide-react';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 const NotebookHeader = () => {
   const mouseX = useMotionValue(0);
@@ -623,8 +625,8 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
                   </div>
 
                   {/* Post Content */}
-                  <div className="text-slate-700 leading-relaxed whitespace-pre-wrap mb-5 text-[15px]">
-                    {post.content}
+                  <div className="text-slate-700 leading-relaxed mb-5 text-[15px] prose prose-slate max-w-none">
+                    <Markdown remarkPlugins={[remarkGfm]}>{post.content}</Markdown>
                   </div>
 
                   {/* Action Bar */}

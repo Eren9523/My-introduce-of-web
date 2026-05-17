@@ -9,6 +9,7 @@
     "start": "node dist/server.cjs"
   },
   "dependencies": {
+    "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
     "better-sqlite3": "^12.10.0",
@@ -22,8 +23,11 @@
     "motion": "^12.23.24",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.15.0",
+    "remark-gfm": "^4.0.1",
     "tailwind-merge": "^3.6.0",
+    "tailwindcss-animate": "^1.0.7",
     "vite": "^6.2.3",
     "xlsx": "^0.18.5"
   },
