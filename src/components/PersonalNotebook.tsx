@@ -613,7 +613,25 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
   const displayTodos = preview ? todos.slice(0, 5) : todos;
 
   return (
-    <section id="notebook" className="min-h-screen py-24 bg-slate-50 text-slate-800 font-sans selection:bg-indigo-500/30 selection:text-indigo-900 border-t border-slate-200">
+    <section id="notebook" className={`min-h-screen ${preview ? 'py-24 border-t border-slate-200' : 'pt-24 pb-12'} bg-slate-50 text-slate-800 font-sans selection:bg-indigo-500/30 selection:text-indigo-900`}>
+      
+      {!preview && (
+        <motion.a 
+          href="/"
+          initial={{ opacity: 0, y: -20, rotate: -5 }}
+          animate={{ opacity: 1, y: 0, rotate: 0 }}
+          whileHover={{ scale: 1.05, y: -2 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          className="fixed top-6 left-6 sm:top-8 sm:left-10 z-[100] flex items-center justify-center px-4 py-2.5 rounded-2xl bg-white/80 backdrop-blur-md border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:shadow-[0_15px_40px_rgba(99,102,241,0.2)] transition-colors group cursor-pointer"
+        >
+          <div className="bg-slate-100/80 text-slate-600 p-1.5 rounded-full mr-2.5 group-hover:-translate-x-1 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-300 border border-slate-200/50 shadow-inner">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          </div>
+          <span className="font-bold tracking-wider text-xs text-slate-700 bg-clip-text">返回主页</span>
+        </motion.a>
+      )}
+
       <div className="container mx-auto px-6 max-w-6xl relative z-0">
         
         <NotebookHeader />
@@ -625,11 +643,6 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
               <Brain className="w-5 h-5 text-indigo-500" />
               <span>个人空间</span>
             </div>
-            {!preview && (
-              <a href="/" className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors flex items-center gap-1">
-                &larr; 返回主页
-              </a>
-            )}
           </div>
           <div className="flex items-center gap-4">
             {user ? (
