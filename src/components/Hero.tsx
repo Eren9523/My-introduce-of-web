@@ -38,7 +38,7 @@ export default function Hero() {
             </h1>
             
             <p className="text-xl text-slate-600 mb-10 leading-relaxed max-w-xl">
-              中南财经政法大学硕士在读，专注于平台运营、用户增长及 AI 系列产品开发。目前正在寻找 2026 年实习机会，欢迎交流。
+              中南财经政法大学硕士在读，深耕平台运营、用户增长、电商运营及游戏运营/策划领域，同时对 AI 系列产品开发充满热情。目前正积极寻找 {new Date().getFullYear()} 年度相关实习机会，期待与您交流。
             </p>
             
             <div className="flex flex-wrap gap-4">

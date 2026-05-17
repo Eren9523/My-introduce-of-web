@@ -20,7 +20,8 @@ export function Navbar() {
   const navLinks = [
     { name: '关于我', href: '#about' },
     { name: '个人项目', href: '#projects' },
-    { name: '实习经历', href: '#experience' }
+    { name: '实习经历', href: '#experience' },
+    { name: '探索生活', href: '#life' }
   ];
 
   return (
