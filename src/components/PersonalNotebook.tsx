@@ -148,6 +148,24 @@ interface Todo {
   authorRole: string;
 }
 
+const formatToBeijingTime = (timeStr: string) => {
+  if (!timeStr) return '';
+  const isoStr = timeStr.includes('T') ? timeStr : timeStr.replace(' ', 'T') + 'Z';
+  return new Date(isoStr).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+};
+
+const formatToBeijingTimeShort = (timeStr: string) => {
+  if (!timeStr) return '';
+  const isoStr = timeStr.includes('T') ? timeStr : timeStr.replace(' ', 'T') + 'Z';
+  return new Date(isoStr).toLocaleTimeString('zh-CN', { timeZone: 'Asia/Shanghai', hour: '2-digit', minute:'2-digit' });
+};
+
+const formatToBeijingDateShort = (timeStr: string) => {
+  if (!timeStr) return '';
+  const isoStr = timeStr.includes('T') ? timeStr : timeStr.replace(' ', 'T') + 'Z';
+  return new Date(isoStr).toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai' });
+};
+
 export default function PersonalNotebook({ preview = false }: { preview?: boolean }) {
   const [user, setUser] = useState<UserPayload | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -236,7 +254,7 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
-      const data = await res.json().catch(() => ({ error: "网络响应异常，无法解析" }));
+      const data: any = await res.json().catch(() => ({ error: "网络响应异常，无法解析" }));
       if (!res.ok) throw new Error(data.error || "请求失败");
       
       localStorage.setItem('log_token', data.token);
@@ -258,7 +276,7 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
-      const data = await res.json().catch(() => ({ error: "网络响应异常，无法解析" }));
+      const data: any = await res.json().catch(() => ({ error: "网络响应异常，无法解析" }));
       if (!res.ok) throw new Error(data.error || "请求失败");
 
       localStorage.setItem('log_token', data.token);
@@ -274,7 +292,12 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
   const handleGuestLogin = async () => {
     try {
       const res = await fetch('/api/auth/guest', { method: 'POST' });
-      const data = await res.json().catch(() => ({ error: "网络响应异常" }));
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch (err) {
+        data = { error: "网络响应异常" };
+      }
       if (!res.ok) throw new Error(data.error);
 
       localStorage.setItem('log_token', data.token);
@@ -458,7 +481,7 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${getToken()}` }
       });
-      const data = await res.json();
+      const data: any = await res.json();
       if (res.ok) {
         setTodos(todos.map(t => t.id === id ? { ...t, is_completed: data.is_completed } : t));
       }
@@ -581,7 +604,7 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
                           </span>
                         </div>
                         <div className="text-xs text-slate-500 mt-0.5">
-                          {new Date(post.created_at).toLocaleString()}
+                          {formatToBeijingTime(post.created_at)}
                         </div>
                       </div>
                     </div>
@@ -632,7 +655,7 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
                                 <div className="flex items-center justify-between mb-1">
                                   <div className="flex items-center gap-2">
                                     <span className="text-sm font-bold text-slate-700">{comment.username}</span>
-                                    <span className="text-[11px] text-slate-400">{new Date(comment.created_at).toLocaleTimeString()}</span>
+                                    <span className="text-[11px] text-slate-400">{formatToBeijingTimeShort(comment.created_at)}</span>
                                   </div>
                                   {canDelete(comment.author_id) && (
                                     <button 
@@ -759,7 +782,7 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
                         </div>
                         <div className="flex items-center gap-1 text-[10px] text-amber-500/70">
                           <Clock className="w-3 h-3" />
-                          {new Date(todo.created_at).toLocaleDateString()} {new Date(todo.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          {formatToBeijingDateShort(todo.created_at)} {formatToBeijingTimeShort(todo.created_at)}
                         </div>
                       </div>
                     </div>

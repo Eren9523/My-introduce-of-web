@@ -168,7 +168,7 @@ export default function GamePlatform() {
         const text = await res.text();
         throw new Error(`POST failed: ${text}`);
       }
-      const d = await res.json();
+      const d = await res.json() as any;
       if (d.id) newMsg.id = d.id;
       
       // Fetch fresh data
@@ -210,7 +210,7 @@ export default function GamePlatform() {
         const text = await res.text();
         throw new Error(`POST failed: ${text}`);
       }
-      const d = await res.json();
+      const d = await res.json() as any;
       
       await fetchComments();
       setReplyTarget(null);

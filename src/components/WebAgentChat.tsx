@@ -189,7 +189,7 @@ export default function WebAgentChat() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json() as any;
         if (errorData.needsAuth) {
           setShowAuthModal(true);
           // 撤回刚添加的 userMessage，因为后端拒绝了
@@ -199,7 +199,7 @@ export default function WebAgentChat() {
         throw new Error(errorData.error || '发送失败');
       }
 
-      const data = await response.json();
+      const data = await response.json() as any;
       const modelMessage: Message = {
         role: 'model',
         parts: [{ text: data.text }]
@@ -231,7 +231,7 @@ export default function WebAgentChat() {
         body: JSON.stringify({ verifyKey: authInput.trim() }),
       });
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json() as any;
         throw new Error(errorData.error || '验证失败');
       }
       setAuthKey(authInput.trim());

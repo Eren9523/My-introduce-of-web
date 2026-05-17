@@ -71,12 +71,12 @@ export async function onRequestPost(context: any) {
 
     // 5. 错误捕获
     if (!deepseekResponse.ok) {
-       const errorData = await deepseekResponse.json();
+       const errorData = await deepseekResponse.json() as any;
        throw new Error(errorData.error?.message || "DeepSeek API 请求失败");
     }
 
     // 6. 解析 DeepSeek 的返回结果
-    const data = await deepseekResponse.json();
+    const data = await deepseekResponse.json() as any;
     // DeepSeek 返回的文本藏在 choices[0].message.content 里
     const replyText = data.choices[0].message.content;
 
