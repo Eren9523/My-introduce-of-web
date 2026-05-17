@@ -170,6 +170,15 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
   // Todo State
   const [newTodoContent, setNewTodoContent] = useState('');
 
+  const formatLocalTime = (utcString: string) => {
+    if (!utcString) return '';
+    try {
+      return new Date(utcString.replace(' ', 'T') + 'Z').toLocaleString();
+    } catch {
+      return utcString;
+    }
+  };
+
   useEffect(() => {
     // Check local storage for token on mount
     const storedToken = localStorage.getItem('log_token');
@@ -298,6 +307,7 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
         setNewPostContent('');
       } else if (res.status === 401 || res.status === 403) {
         handleLogout();
+        setAuthError(data.error || '需要授权');
         setIsAuthModalOpen(true);
       }
     } catch (e) {
@@ -313,6 +323,9 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
       });
       if (res.ok) {
         setPosts(posts.filter(p => p.id !== id));
+      } else if (res.status === 401 || res.status === 403) {
+        const errData = await res.json().catch(() => ({}));
+        alert(`删除失败: ${errData.error || '权限不足'}`);
       }
     } catch (e) {
       console.error(e);
@@ -348,15 +361,19 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
         },
         body: JSON.stringify({ post_id: postId, content: newCommentContent })
       });
-      const newComment = await res.json();
+      const data = await res.json();
       if (res.ok) {
         setPosts(posts.map(p => {
           if (p.id === postId) {
-            return { ...p, comments: [...(p.comments || []), newComment] };
+            return { ...p, comments: [...(p.comments || []), data] };
           }
           return p;
         }));
         setNewCommentContent('');
+      } else if (res.status === 401 || res.status === 403) {
+        handleLogout();
+        setAuthError(data.error || '需要授权');
+        setIsAuthModalOpen(true);
       }
     } catch (e) {
       console.error(e);
@@ -394,10 +411,14 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
         },
         body: JSON.stringify({ content: newTodoContent })
       });
-      const newTodo = await res.json();
+      const data = await res.json();
       if (res.ok) {
-        setTodos([newTodo, ...todos]);
+        setTodos([data, ...todos]);
         setNewTodoContent('');
+      } else if (res.status === 401 || res.status === 403) {
+        handleLogout();
+        setAuthError(data.error || '需要授权');
+        setIsAuthModalOpen(true);
       }
     } catch (e) {
       console.error(e);
@@ -413,6 +434,10 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
       const data = await res.json();
       if (res.ok) {
         setTodos(todos.map(t => t.id === id ? { ...t, is_completed: data.is_completed } : t));
+      } else if (res.status === 401 || res.status === 403) {
+        handleLogout();
+        setAuthError(data.error || '需要授权');
+        setIsAuthModalOpen(true);
       }
     } catch (e) {
       console.error(e);
@@ -427,6 +452,9 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
       });
       if (res.ok) {
         setTodos(todos.filter(t => t.id !== id));
+      } else if (res.status === 401 || res.status === 403) {
+        const errData = await res.json().catch(() => ({}));
+        alert(`删除失败: ${errData.error || '权限不足'}`);
       }
     } catch (e) {
       console.error(e);
@@ -533,7 +561,7 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
                           </span>
                         </div>
                         <div className="text-xs text-slate-500 mt-0.5">
-                          {new Date(post.created_at).toLocaleString()}
+                          {formatLocalTime(post.created_at)}
                         </div>
                       </div>
                     </div>
@@ -584,7 +612,7 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
                                 <div className="flex items-center justify-between mb-1">
                                   <div className="flex items-center gap-2">
                                     <span className="text-sm font-bold text-slate-700">{comment.username}</span>
-                                    <span className="text-[11px] text-slate-400">{new Date(comment.created_at).toLocaleTimeString()}</span>
+                                    <span className="text-[11px] text-slate-400">{formatLocalTime(comment.created_at)}</span>
                                   </div>
                                   {canDelete(comment.author_id) && (
                                     <button 
@@ -711,7 +739,7 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
                         </div>
                         <div className="flex items-center gap-1 text-[10px] text-amber-500/70">
                           <Clock className="w-3 h-3" />
-                          {new Date(todo.created_at).toLocaleDateString()} {new Date(todo.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          {formatLocalTime(todo.created_at)}
                         </div>
                       </div>
                     </div>
