@@ -302,13 +302,21 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
         },
         body: JSON.stringify({ content: newPostContent })
       });
-      const data = await res.json();
-      if (res.ok) {
-        setPosts([data, ...posts]);
-        setNewPostContent('');
-      } else if (res.status === 401 || res.status === 403) {
-        handleLogout();
-        setIsAuthModalOpen(true);
+      const text = await res.text();
+      try {
+        const data = JSON.parse(text);
+        if (res.ok) {
+          setPosts([data, ...posts]);
+          setNewPostContent('');
+        } else if (res.status === 401 || res.status === 403) {
+          handleLogout();
+          setIsAuthModalOpen(true);
+        } else {
+          alert(data.error || "请求失败");
+        }
+      } catch (err) {
+        console.error("API Error:", text);
+        alert("网络响应异常，请重试");
       }
     } catch (e) {
       console.error(e);
@@ -337,10 +345,18 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
     
     try {
       const res = await fetch(`/api/posts/${postId}`);
-      const data = await res.json();
+      const text = await res.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Failed to parse comments JSON:", text);
+      }
       
-      setPosts(posts.map(p => p.id === postId ? { ...p, comments: data.comments } : p));
-      setActiveCommentPost(postId);
+      if (res.ok && data.comments) {
+        setPosts(posts.map(p => p.id === postId ? { ...p, comments: data.comments } : p));
+        setActiveCommentPost(postId);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -358,18 +374,26 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
         },
         body: JSON.stringify({ post_id: postId, content: newCommentContent })
       });
-      const data = await res.json();
-      if (res.ok) {
-        setPosts(posts.map(p => {
-          if (p.id === postId) {
-            return { ...p, comments: [...(p.comments || []), data] };
-          }
-          return p;
-        }));
-        setNewCommentContent('');
-      } else if (res.status === 401 || res.status === 403) {
-        handleLogout();
-        setIsAuthModalOpen(true);
+      const text = await res.text();
+      try {
+        const data = JSON.parse(text);
+        if (res.ok) {
+          setPosts(posts.map(p => {
+            if (p.id === postId) {
+              return { ...p, comments: [...(p.comments || []), data] };
+            }
+            return p;
+          }));
+          setNewCommentContent('');
+        } else if (res.status === 401 || res.status === 403) {
+          handleLogout();
+          setIsAuthModalOpen(true);
+        } else {
+          alert(data.error || "请求失败");
+        }
+      } catch (err) {
+         console.error("API Error:", text);
+         alert("网络响应异常，请重试");
       }
     } catch (e) {
       console.error(e);
@@ -407,13 +431,21 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
         },
         body: JSON.stringify({ content: newTodoContent })
       });
-      const data = await res.json();
-      if (res.ok) {
-        setTodos([data, ...todos]);
-        setNewTodoContent('');
-      } else if (res.status === 401 || res.status === 403) {
-        handleLogout();
-        setIsAuthModalOpen(true);
+      const text = await res.text();
+      try {
+        const data = JSON.parse(text);
+        if (res.ok) {
+          setTodos([data, ...todos]);
+          setNewTodoContent('');
+        } else if (res.status === 401 || res.status === 403) {
+          handleLogout();
+          setIsAuthModalOpen(true);
+        } else {
+          alert(data.error || "请求失败");
+        }
+      } catch (err) {
+        console.error("API Error:", text);
+        alert("网络响应异常，请重试");
       }
     } catch (e) {
       console.error(e);

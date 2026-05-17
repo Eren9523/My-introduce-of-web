@@ -73,7 +73,10 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
     `).bind(insertId).first();
 
     return jsonResponse(newComment || { success: true, id: insertId });
-  } catch (err) {
+  } catch (err: any) {
+    if (err.message && err.message.includes('FOREIGN KEY constraint failed')) {
+      return jsonResponse({ error: "由于外键约束（用户失效或相关帖子被删），保存失败。请刷新或重新登录。" }, 401);
+    }
     return jsonResponse({ error: String(err) }, 500);
   }
 };
