@@ -49,15 +49,15 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
       return jsonResponse({ error: "内容不能为空" }, 400);
     }
 
-    const id = crypto.randomUUID();
-
-    const { success, error } = await context.env.DB.prepare(
-      "INSERT INTO todos (id, user_id, title, completed) VALUES (?, ?, ?, 0)"
-    ).bind(id, author_id, content).run();
+    const { success, error, meta } = await context.env.DB.prepare(
+      "INSERT INTO todos (user_id, title, completed) VALUES (?, ?, 0)"
+    ).bind(author_id, content).run();
 
     if (!success) {
       return jsonResponse({ error: "数据库写入失败", details: error }, 500);
     }
+
+    const insertId = meta?.last_row_id;
 
     const newTodo = await context.env.DB.prepare(`
       SELECT 
@@ -71,9 +71,9 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
       FROM todos t 
       LEFT JOIN users u ON t.user_id = u.id 
       WHERE t.id = ?
-    `).bind(id).first();
+    `).bind(insertId).first();
 
-    return jsonResponse(newTodo || { success: true, id });
+    return jsonResponse(newTodo || { success: true, id: insertId });
   } catch (err: any) {
     if (err.message && err.message.includes('FOREIGN KEY constraint failed')) {
       return jsonResponse({ error: "用户不存在或失效，请重新登录" }, 401);
