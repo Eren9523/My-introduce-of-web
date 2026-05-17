@@ -1,6 +1,7 @@
 import { motion, useScroll, useSpring } from 'motion/react';
 import { useState, useEffect } from 'react';
 import { Mail, Github, Menu, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -21,7 +22,8 @@ export function Navbar() {
     { name: '关于我', href: '#about' },
     { name: '个人项目', href: '#projects' },
     { name: '实习经历', href: '#experience' },
-    { name: '探索生活', href: '#life' }
+    { name: '探索生活', href: '#life' },
+    { name: '个人笔记本', href: '#notebook' }
   ];
 
   return (
@@ -32,7 +34,7 @@ export function Navbar() {
     >
       <div className="container mx-auto px-6 max-w-6xl flex justify-between items-center">
         <motion.a 
-          href="#" 
+          href="/" 
           className="text-2xl font-black tracking-tighter text-slate-900 hover:text-indigo-600 transition-colors"
           whileHover={{ scale: 1.05 }}
         >
@@ -41,13 +43,13 @@ export function Navbar() {
 
         <nav className="hidden md:flex items-center gap-8">
           {navLinks.map(link => (
-            <a 
-              key={link.name} 
-              href={link.href}
-              className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors tracking-tight"
-            >
-              {link.name}
-            </a>
+              <a 
+                key={link.name} 
+                href={link.href}
+                className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors tracking-tight"
+              >
+                {link.name}
+              </a>
           ))}
           <a 
             href="mailto:eren9523@foxmail.com"

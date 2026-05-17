@@ -7,6 +7,7 @@ import CampusAwards from './CampusAwards';
 import Footer from './Footer';
 import LifeStyle from './LifeStyle';
 import { SupportModule } from './SupportModule';
+import PersonalNotebook from './PersonalNotebook';
 
 export default function PortfolioHome() {
   return (
@@ -19,6 +20,7 @@ export default function PortfolioHome() {
         <Experience />
         <CampusAwards />
         <LifeStyle />
+        <PersonalNotebook preview={true} />
         <SupportModule />
       </main>
       <Footer />
