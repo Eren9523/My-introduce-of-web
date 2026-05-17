@@ -11,14 +11,28 @@ const jsonResponse = (data: any, status = 200) => {
 
 export const onRequestGet = async (context: { env: Env }) => {
   try {
-    // 联合查询 posts 表与 users 表，关联作者信息，并按建立时间降序排列
-    const { results } = await context.env.DB.prepare(`
-      SELECT p.*, u.username, u.role as authorRole 
-      FROM posts p 
-      LEFT JOIN users u ON p.author_id = u.id 
-      ORDER BY p.created_at DESC
-    `).all();
-    return jsonResponse(results || []);
+    const doQuery = async () => {
+      return await context.env.DB.prepare(`
+        SELECT p.*, u.username, u.role as authorRole 
+        FROM posts p 
+        LEFT JOIN users u ON p.author_id = u.id 
+        ORDER BY COALESCE(p.is_pinned, 0) DESC, p.created_at DESC
+      `).all();
+    };
+
+    let res;
+    try {
+      res = await doQuery();
+    } catch (e: any) {
+      if (e.message && (e.message.includes('no such column: p.is_pinned') || e.message.includes('no such column: is_pinned'))) {
+        await context.env.DB.prepare(`ALTER TABLE posts ADD COLUMN is_pinned INTEGER DEFAULT 0`).run();
+        res = await doQuery();
+      } else {
+        throw e;
+      }
+    }
+    
+    return jsonResponse(res.results || []);
   } catch (err) {
     return jsonResponse({ error: String(err) }, 500);
   }

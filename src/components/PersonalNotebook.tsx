@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'motion/react';
-import { Brain, Lock, User, UserPlus, LogOut, Code, Send, Trash2, MessageSquare, X, CheckCircle2, Circle, Clock, StickyNote, Image as ImageIcon } from 'lucide-react';
+import { Brain, Lock, User, UserPlus, LogOut, Code, Send, Trash2, MessageSquare, X, CheckCircle2, Circle, Clock, StickyNote, Image as ImageIcon, Pin } from 'lucide-react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -179,6 +179,7 @@ interface Post {
   created_at: string;
   username: string;
   authorRole: string;
+  is_pinned?: number;
   comments?: LogComment[];
 }
 
@@ -433,6 +434,33 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
     }
   };
 
+  const handleTogglePin = async (id: string, currentPinStatus?: number) => {
+    try {
+      const res = await fetch(`/api/posts/${id}/pin`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}` 
+        },
+        body: JSON.stringify({ is_pinned: currentPinStatus === 1 ? 0 : 1 })
+      });
+      if (res.ok) {
+        const data = await res.json() as Post;
+        setPosts(prev => prev.map(p => p.id === id ? { ...p, is_pinned: data.is_pinned } : p).sort((a, b) => {
+          const pinA = a.is_pinned || 0;
+          const pinB = b.is_pinned || 0;
+          if (pinA !== pinB) return pinB - pinA;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        }));
+      } else {
+        const err = await res.json() as any;
+        alert(err.error || "操作失败，可能需要初始化数据库表");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const toggleComments = async (postId: string) => {
     if (activeCommentPost === postId) {
       setActiveCommentPost(null);
@@ -592,9 +620,16 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
 
         {/* Auth Bar */}
         <div className="flex justify-between items-center bg-white border border-slate-200 p-4 rounded-2xl shadow-sm mb-8">
-          <div className="font-bold text-slate-700 flex items-center gap-2">
-            <Brain className="w-5 h-5 text-indigo-500" />
-            <span>个人空间</span>
+          <div className="font-bold text-slate-700 flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Brain className="w-5 h-5 text-indigo-500" />
+              <span>个人空间</span>
+            </div>
+            {!preview && (
+              <a href="/" className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors flex items-center gap-1">
+                &larr; 返回主页
+              </a>
+            )}
           </div>
           <div className="flex items-center gap-4">
             {user ? (
@@ -695,20 +730,30 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
                             {post.authorRole}
                           </span>
                         </div>
-                        <div className="text-xs text-slate-500 mt-0.5">
+                        <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+                          {post.is_pinned === 1 && <Pin className="w-3 h-3 text-amber-500 fill-amber-500" />}
                           {formatToBeijingTime(post.created_at)}
                         </div>
                       </div>
                     </div>
                     
                     {canDelete(post.author_id) && (
-                      <button 
-                        onClick={() => handleDeletePost(post.id)}
-                        className="text-slate-400 hover:text-rose-500 p-1.5 hover:bg-rose-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                        title="删除"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => handleTogglePin(post.id, post.is_pinned)}
+                          className={`p-1.5 rounded-lg transition-colors ${post.is_pinned === 1 ? 'text-amber-500 hover:bg-amber-50' : 'text-slate-400 hover:text-amber-500 hover:bg-amber-50'}`}
+                          title={post.is_pinned === 1 ? "取消置顶" : "置顶"}
+                        >
+                          <Pin className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDeletePost(post.id)}
+                          className="text-slate-400 hover:text-rose-500 p-1.5 hover:bg-rose-50 rounded-lg transition-colors"
+                          title="删除"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     )}
                   </div>
 
@@ -811,18 +856,6 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
               )}
             </div>
 
-            {preview && posts.length > 0 && (
-              <div className="mt-8 pt-4 flex justify-center">
-                <a 
-                  href="/notebook"
-                  className="bg-white border border-slate-200 text-slate-600 hover:text-indigo-600 hover:border-indigo-600 font-medium text-sm px-8 py-3 rounded-xl transition-all hover:shadow-md inline-flex items-center gap-2 group"
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  进入个人空间
-                  <span className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all">-&gt;</span>
-                </a>
-              </div>
-            )}
           </div>
 
           {/* Sidebar: Sticky Notes / Todos */}
@@ -909,6 +942,20 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
             </div>
           </div>
         </div>
+
+        {/* Enter Notebook Button (Bottom on Mobile) */}
+        {preview && posts.length > 0 && (
+          <div className="mt-8 pt-4 flex justify-center relative z-10 w-full">
+            <a 
+              href="/notebook"
+              className="bg-white border border-slate-200 text-slate-600 hover:text-indigo-600 hover:border-indigo-600 font-medium text-sm px-8 py-3 rounded-xl transition-all shadow-sm hover:shadow-md inline-flex items-center gap-2 group"
+            >
+              <MessageSquare className="w-4 h-4" />
+              进入个人空间
+              <span className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all">-&gt;</span>
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Auth Modal */}
