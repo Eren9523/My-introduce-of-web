@@ -1,8 +1,50 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'motion/react';
-import { Brain, Lock, User, UserPlus, LogOut, Code, Send, Trash2, MessageSquare, X, CheckCircle2, Circle, Clock, StickyNote } from 'lucide-react';
+import { Brain, Lock, User, UserPlus, LogOut, Code, Send, Trash2, MessageSquare, X, CheckCircle2, Circle, Clock, StickyNote, Image as ImageIcon } from 'lucide-react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+
+const compressImage = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // 最大宽度 800px 以节省存储空间
+        const MAX_WIDTH = 800;
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Canvas ctx not available'));
+          return;
+        }
+        
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // 输出 jpeg 并且降低质量以满足 SQLite 大小
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+        resolve(dataUrl);
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+};
 
 const NotebookHeader = () => {
   const mouseX = useMotionValue(0);
@@ -182,6 +224,8 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
 
   // New Post State
   const [newPostContent, setNewPostContent] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   
   // Comment State
   const [activeCommentPost, setActiveCommentPost] = useState<string | null>(null);
@@ -313,6 +357,33 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
   const handleLogout = () => {
     localStorage.removeItem('log_token');
     setUser(null);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('请选择图片文件');
+      return;
+    }
+
+    try {
+      setIsUploadingImage(true);
+      const dataUrl = await compressImage(file);
+      const imageName = file.name || 'image';
+      
+      // 添加到内容中
+      setNewPostContent(prev => prev + (prev.length > 0 && !prev.endsWith('\n') ? '\n' : '') + `![${imageName}](${dataUrl})\n`);
+    } catch (err) {
+      console.error('Image upload failed', err);
+      alert('图片处理失败');
+    } finally {
+      setIsUploadingImage(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
   const handleSubmitPost = async () => {
@@ -572,8 +643,25 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
                 className="w-full bg-transparent border-none outline-none resize-none min-h-[100px] text-slate-700 placeholder:text-slate-400 focus:ring-0 leading-relaxed"
               ></textarea>
               <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-100">
-                <div className="text-xs text-slate-500 flex items-center gap-2 font-medium">
-                  <Code className="w-3.5 h-3.5" /> 支持 Markdown
+                <div className="flex items-center gap-4">
+                  <div className="text-xs text-slate-500 flex items-center gap-2 font-medium">
+                    <Code className="w-3.5 h-3.5" /> 支持 Markdown
+                  </div>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    className="hidden" 
+                    ref={fileInputRef} 
+                    onChange={handleImageUpload} 
+                  />
+                  <button 
+                    onClick={() => requireAuth(() => fileInputRef.current?.click())}
+                    className="text-xs text-slate-500 hover:text-indigo-600 flex items-center gap-2 font-medium transition-colors"
+                    disabled={isUploadingImage}
+                  >
+                    <ImageIcon className="w-3.5 h-3.5" /> 
+                    {isUploadingImage ? '处理中...' : '插入图片'}
+                  </button>
                 </div>
                 <button
                   onClick={() => requireAuth(handleSubmitPost)}
@@ -625,8 +713,13 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
                   </div>
 
                   {/* Post Content */}
-                  <div className="text-slate-700 leading-relaxed mb-5 text-[15px] prose prose-slate max-w-none">
-                    <Markdown remarkPlugins={[remarkGfm]}>{post.content}</Markdown>
+                  <div className="text-slate-700 leading-relaxed mb-5 text-[15px] prose prose-slate max-w-none prose-img:rounded-xl prose-img:shadow-sm">
+                    <Markdown 
+                      remarkPlugins={[remarkGfm]} 
+                      urlTransform={(value) => value}
+                    >
+                      {post.content}
+                    </Markdown>
                   </div>
 
                   {/* Action Bar */}
