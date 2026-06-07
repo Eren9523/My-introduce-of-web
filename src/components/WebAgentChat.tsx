@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Send, Bot, User, ArrowLeft, RefreshCw, Sparkles, MessageSquare, Lock, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Message {
   role: 'user' | 'model';
@@ -332,7 +334,13 @@ export default function WebAgentChat() {
                     ? 'bg-indigo-600 text-white rounded-tr-none' 
                     : 'bg-white text-slate-800 rounded-tl-none border border-slate-100'
                 }`}>
-                  <p className="whitespace-pre-wrap leading-relaxed">{msg.parts[0].text}</p>
+                  {msg.role === 'user' ? (
+                    <p className="whitespace-pre-wrap leading-relaxed">{msg.parts[0].text}</p>
+                  ) : (
+                    <div className="prose prose-sm prose-slate max-w-none">
+                      <Markdown remarkPlugins={[remarkGfm]}>{msg.parts[0].text}</Markdown>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             ))}

@@ -122,7 +122,7 @@ export default function Projects() {
                         <span className="text-3xl mr-2 drop-shadow-md leading-none">🥳</span>
                         
                         <span className="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-500 whitespace-nowrap">
-                          快来点击，适用一下项目吧~
+                          快来点击，试用一下项目吧~
                         </span>
                         
                         <button
