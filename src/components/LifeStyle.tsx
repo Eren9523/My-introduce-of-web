@@ -153,7 +153,7 @@ export default function LifeStyle() {
   return (
     <section 
       ref={containerRef}
-      className="py-32 relative bg-slate-50 overflow-hidden"
+      className="py-32 relative bg-transparent overflow-hidden"
       id="life"
     >
       {/* Background decorations */}

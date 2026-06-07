@@ -18,7 +18,7 @@ export default function Projects() {
   }, [hasEnteredView, showWebAgentTip]);
 
   return (
-    <section id="projects" className="py-24 bg-white">
+    <section id="projects" className="py-24 bg-transparent">
       <div className="container mx-auto px-6 max-w-6xl">
         <div className="flex items-center gap-4 mb-12">
           <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">

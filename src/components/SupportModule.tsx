@@ -16,7 +16,7 @@ export const SupportModule = () => {
   };
 
   return (
-    <section className="py-24 relative overflow-hidden bg-white">
+    <section className="py-24 relative overflow-hidden bg-transparent">
       <div className="container mx-auto px-6 max-w-5xl relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-black mb-4 uppercase tracking-[0.2em] text-indigo-600">Sponsorship</h2>

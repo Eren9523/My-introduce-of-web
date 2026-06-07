@@ -4,7 +4,7 @@ import { EXPERIENCES } from '../constants';
 
 export default function Experience() {
   return (
-    <section id="experience" className="py-24 bg-slate-50">
+    <section id="experience" className="py-24 bg-transparent">
       <div className="container mx-auto px-6 max-w-6xl">
         <div className="flex items-center gap-4 mb-16">
           <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">

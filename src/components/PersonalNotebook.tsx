@@ -3,6 +3,7 @@ import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from
 import { Brain, Lock, User, UserPlus, LogOut, Code, Send, Trash2, MessageSquare, X, CheckCircle2, Circle, Clock, StickyNote, Image as ImageIcon, Pin } from 'lucide-react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import TideBackground from './TideBackground';
 
 const compressImage = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -47,110 +48,31 @@ const compressImage = (file: File): Promise<string> => {
 };
 
 const NotebookHeader = () => {
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  // Different spring configs for weight simulation
-  const springLarge = { damping: 40, stiffness: 40 };   // heavy
-  const springMedium = { damping: 25, stiffness: 100 }; // medium
-  const springSmall = { damping: 15, stiffness: 200 };  // agile
-
-  const smoothXLarge = useSpring(mouseX, springLarge);
-  const smoothYLarge = useSpring(mouseY, springLarge);
-  
-  const smoothXMedium = useSpring(mouseX, springMedium);
-  const smoothYMedium = useSpring(mouseY, springMedium);
-  
-  const smoothXSmall = useSpring(mouseX, springSmall);
-  const smoothYSmall = useSpring(mouseY, springSmall);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    // push away from center
-    mouseX.set(x);
-    mouseY.set(y);
-  };
-
-  const handleMouseLeave = () => {
-    mouseX.set(0);
-    mouseY.set(0);
-  };
-
   return (
     <div 
       className="relative w-full h-[320px] md:h-[400px] flex items-center justify-center overflow-hidden mb-12 rounded-[2.5rem] bg-slate-950 border border-slate-800 shadow-[0_0_60px_rgba(139,92,246,0.1)] group cursor-crosshair"
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
     >
-      {/* Rainbow Cursor Follower */}
-      <motion.div
-        className="absolute w-40 h-40 rounded-full pointer-events-none blur-[60px] opacity-0 group-hover:opacity-80 transition-opacity duration-300 z-0"
-        style={{
-          x: useTransform(smoothXSmall, x => x - 80),
-          y: useTransform(smoothYSmall, y => y - 80),
-          background: 'radial-gradient(circle, #ec4899, #8b5cf6, #3b82f6, #10b981)',
-          left: '50%',
-          top: '50%'
-        }}
-      />
+      <TideBackground />
       
-      {/* Grid Background */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
-
-      {/* Layer 1 (Base Ring - Large & Heavy) */}
-      <motion.div 
-        className="absolute w-[280px] h-[280px] md:w-[340px] md:h-[340px] rounded-full bg-slate-900/50 border border-purple-500/20 shadow-[0_0_30px_rgba(139,92,246,0.1),inset_0_0_20px_rgba(139,92,246,0.1)] z-10 flex items-center justify-center backdrop-blur-sm"
-        style={{ 
-          x: useTransform(smoothXLarge, x => -25 * Math.tanh(x / 300)), 
-          y: useTransform(smoothYLarge, y => -25 * Math.tanh(y / 300)) 
-        }}
-      >
-        {/* Layer 2 (Middle Ring - Medium) */}
-        <motion.div 
-          className="w-[200px] h-[200px] md:w-[240px] md:h-[240px] rounded-full bg-slate-900 border border-cyan-500/30 shadow-[0_0_40px_rgba(6,182,212,0.15),inset_0_0_15px_rgba(6,182,212,0.2)] z-20 flex items-center justify-center"
-          style={{ 
-            x: useTransform(smoothXMedium, x => -30 * Math.tanh(x / 300)), 
-            y: useTransform(smoothYMedium, y => -30 * Math.tanh(y / 300)) 
-          }}
-        >
-          {/* Layer 3 (Inner Circle - Small & Agile) */}
-          <motion.div
-            className="w-[120px] h-[120px] md:w-[150px] md:h-[150px] rounded-full bg-slate-950 shadow-[0_0_50px_rgba(236,72,153,0.3),inset_0_0_20px_rgba(236,72,153,0.2)] z-30 flex flex-col items-center justify-center relative border border-pink-500/40"
-            style={{ 
-              x: useTransform(smoothXSmall, x => -25 * Math.tanh(x / 300)), 
-              y: useTransform(smoothYSmall, y => -25 * Math.tanh(y / 300)) 
-            }}
-          >
-             <h2 className="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-br from-pink-400 via-purple-400 to-cyan-400 z-10 tracking-tight drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">脑内空间</h2>
-             <p className="text-[9px] md:text-[10px] text-cyan-400 font-bold tracking-wider mt-1 z-10 opacity-80">CYBER NOTEBOOK</p>
-          </motion.div>
-        </motion.div>
-      </motion.div>
+      {/* Background decorations removed, replaced with TideBackground */}
       
-      {/* Decorative Pills - Rainbow Colored */}
-      <motion.div 
-        className="absolute w-12 h-4 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 shadow-[0_0_15px_rgba(236,72,153,0.5)] z-20"
-        style={{ 
-          x: useTransform(smoothXMedium, x => -40 * Math.tanh(x / 400) + 120), 
-          y: useTransform(smoothYMedium, y => -40 * Math.tanh(y / 400) - 80) 
-        }}
-      />
-      <motion.div 
-        className="absolute w-8 h-3 rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 shadow-[0_0_10px_rgba(6,182,212,0.5)] z-20"
-        style={{ 
-          x: useTransform(smoothXSmall, x => -50 * Math.tanh(x / 400) - 140), 
-          y: useTransform(smoothYSmall, y => -50 * Math.tanh(y / 400) - 50) 
-        }}
-      />
-      <motion.div 
-        className="absolute w-16 h-5 rounded-full bg-gradient-to-r from-yellow-400 via-orange-500 to-pink-500 shadow-[0_0_20px_rgba(245,158,11,0.5)] z-10 opacity-80"
-        style={{ 
-          x: useTransform(smoothXLarge, x => -30 * Math.tanh(x / 400) + 160), 
-          y: useTransform(smoothYLarge, y => -30 * Math.tanh(y / 400) + 120) 
-        }}
-      />
+      {/* Text Layer */}
+      <div className="z-10 flex flex-col items-center justify-center pointer-events-none drop-shadow-2xl mix-blend-lighten">
+        {/* Changed network notebook text to be large and prominent */}
+        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-500 tracking-tight drop-shadow-[0_0_15px_rgba(255,255,255,0.7)] uppercase mb-2" translate="no">
+          CYBER NOTEBOOK
+        </h2>
+        <h3 className="text-2xl md:text-3xl text-center font-bold tracking-widest text-slate-100">
+          网络笔记
+        </h3>
+        
+        {/* Changed mind space text to be small subtitle underneath */}
+        <div className="flex items-center gap-2 mt-4 px-4 py-1.5 rounded-full bg-slate-900/50 border border-pink-500/30 backdrop-blur-md">
+          <div className="w-2 h-2 rounded-full bg-pink-500 animate-pulse" />
+          <p className="text-[10px] md:text-xs text-pink-400 font-bold tracking-[0.2em] uppercase">脑内空间</p>
+          <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" style={{ animationDelay: '500ms' }} />
+        </div>
+      </div>
     </div>
   );
 };
@@ -613,7 +535,7 @@ export default function PersonalNotebook({ preview = false }: { preview?: boolea
   const displayTodos = preview ? todos.slice(0, 5) : todos;
 
   return (
-    <section id="notebook" className={`min-h-screen ${preview ? 'py-24 border-t border-slate-200' : 'pt-24 pb-12'} bg-slate-50 text-slate-800 font-sans selection:bg-indigo-500/30 selection:text-indigo-900`}>
+    <section id="notebook" className={`min-h-screen ${preview ? 'py-24 border-t border-slate-200' : 'pt-24 pb-12'} bg-transparent text-slate-800 font-sans selection:bg-indigo-500/30 selection:text-indigo-900`}>
       
       {!preview && (
         <motion.a 

@@ -11,7 +11,7 @@ export default function About() {
   ];
 
   return (
-    <section id="about" className="py-24 bg-white overflow-hidden">
+    <section id="about" className="py-24 bg-transparent overflow-hidden">
       <div className="container mx-auto px-6 max-w-6xl">
         <div className="grid md:grid-cols-2 gap-16 items-start">
           <motion.div

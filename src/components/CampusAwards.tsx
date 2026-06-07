@@ -4,7 +4,7 @@ import { CAMPUS_EXPERIENCES, AWARDS } from '../constants';
 
 export default function CampusAwards() {
   return (
-    <section id="campus-awards" className="py-24 bg-white">
+    <section id="campus-awards" className="py-24 bg-transparent">
       <div className="container mx-auto px-6 max-w-6xl">
         <div className="grid md:grid-cols-2 gap-16">
           {/* Campus Experience */}
